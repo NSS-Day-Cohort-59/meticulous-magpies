@@ -95,7 +95,26 @@ Order By t.Name
                 }
             }
         }
+    public void UpdateTag(Tag tag)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
 
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        UPDATE Tag
+                        SET [Name] = @name
+                        WHERE Id = @id
+                        ";
+
+                    cmd.Parameters.AddWithValue("@name", tag.Name);
+                    cmd.Parameters.AddWithValue("@id", tag.Id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
     }
 }
