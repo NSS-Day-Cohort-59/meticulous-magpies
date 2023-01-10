@@ -1,0 +1,49 @@
+﻿@model TabloidMVC.Models.UserProfile
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>UserProfile</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DisplayName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DisplayName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+        <dt class = "col-sm-2">
+            Creation Date
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.CreateDateTime.ToString("MM/dd/yyyy")
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UserType.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UserType.Name)
+        </dd>
+    </dl>
+        <img src="@Model.ImageLocation" alt="avatar" />
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    <a asp-action="Index">Back to List</a>
+</div>
