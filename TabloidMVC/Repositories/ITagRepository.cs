@@ -6,5 +6,12 @@ namespace TabloidMVC.Repositories
     public interface ITagRepository
     {
         List<Tag> GetAllTags();
+        Tag GetTagById(int id);
+
+
+
+        void AddTag(Tag tag);
+        void DeleteTag(Tag tag);
+
     }
 }
