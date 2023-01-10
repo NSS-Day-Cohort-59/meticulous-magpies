@@ -1,0 +1,52 @@
+﻿@model TabloidMVC.Models.UserProfile
+
+@{
+    ViewData["Title"] = "Deactivate";
+}
+
+<h1>Deactivate</h1>
+
+<h3>Are you sure you want to activate @Model.DisplayName?</h3>
+<div>
+    <h4>UserProfile</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DisplayName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DisplayName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+        <dt class="col-sm-2">
+            Creation Date
+        </dt>
+        <dd class="col-sm-10">
+            @Model.CreateDateTime.ToString("MM/dd/yyyy")
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.UserType.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.UserType.Name)
+        </dd>
+    </dl>
+    <img src="@Model.ImageLocation" alt="avatar" />
+
+
+    <form asp-action="Activate">
+        <input type="submit" value="Activate" class="btn btn-dark" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
