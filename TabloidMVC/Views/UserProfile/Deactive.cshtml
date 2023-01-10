@@ -4,10 +4,10 @@
     ViewData["Title"] = "Index";
 }
 
-<h1 class="pt-4 pl-4">Active User Profiles</h1>
+<h1 class="pt-4 pl-4">Deactive User Profiles</h1>
 
 <p class="pt-4 pl-4">
-    <a asp-action="Create">Create New</a> | <a asp-action="Deactive">View Deactivated</a>
+    <a asp-action="Index">View Active</a>
 </p>
 <table class="table">
     <thead>
@@ -27,7 +27,7 @@
     <tbody>
         @foreach (var item in Model)
         {
-            @if (!item.IsActive)
+            @if (item.IsActive)
             {
                 continue;
             }
@@ -44,7 +44,7 @@
                 <td>
                     @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
                     @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-                    @Html.ActionLink("Deactivate", "Deactivate", new { id = item.Id })
+                    @Html.ActionLink("Activate", "Activate", new { id = item.Id })
                 </td>
             </tr>
         }
