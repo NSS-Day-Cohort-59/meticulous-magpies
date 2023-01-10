@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims;
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -31,7 +32,9 @@
                                 <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" asp-area="" asp-controller="Post" asp-action="Index">POSTS</a>
                             </li>
                             <li class="nav-item mx-0 mx-lg-1">
-                                <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" asp-area="" asp-controller="Account" asp-action="Logout">LOGOUT</a>
+                                <a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" asp-area="" asp-controller="Account" asp-action="Logout">LOGOUT
+                                     @User.FindFirst(ClaimTypes.Email).Value
+                                </a>
                             </li>
                         }
                         else
