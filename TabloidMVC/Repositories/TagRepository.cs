@@ -58,8 +58,43 @@ Order By t.Name
                 }
             }
         }
+    public Tag GetTagById(int id)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
 
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        Select [Name]
+                        From Tag
+                        Where Id = @id";
 
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    return new Tag { Id = id, Name = (string)cmd.ExecuteScalar() };
+                }
+            }
+        }
+    public void DeleteTag(Tag tag)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                            DELETE FROM Tag
+                            WHERE Id = @id
+                            ";
+
+                    cmd.Parameters.AddWithValue("@id", tag.Id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
 
     }
