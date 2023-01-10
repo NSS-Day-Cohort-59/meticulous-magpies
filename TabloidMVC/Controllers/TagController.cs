@@ -24,7 +24,7 @@ namespace TabloidMVC.Controllers
         [Authorize]
         public ActionResult Index()
         {
-            var tags = _tagRepository.GetAllTags(); 
+            var tags = _tagRepository.GetAllTags();
             return View(tags);
         }
 
@@ -53,7 +53,7 @@ namespace TabloidMVC.Controllers
 
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch
             {
                 return View(tag);
             }

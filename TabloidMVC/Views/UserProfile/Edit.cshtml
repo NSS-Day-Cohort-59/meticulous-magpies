@@ -1,0 +1,76 @@
+﻿@model TabloidMVC.Models.ViewModels.EditUserProfileViewModel;
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 class="text-center pt-2">Edit</h1>
+
+<h4 class="text-center">UserProfile</h4>
+<hr />
+<div class="d-flex justify-content-center w-100 row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                @Html.HiddenFor(m => m.UserProfile.Id)
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.FirstName" class="control-label"></label>
+                <input asp-for="UserProfile.FirstName" class="form-control" />
+                <span asp-validation-for="UserProfile.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.LastName" class="control-label"></label>
+                <input asp-for="UserProfile.LastName" class="form-control" />
+                <span asp-validation-for="UserProfile.LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.DisplayName" class="control-label"></label>
+                <input asp-for="UserProfile.DisplayName" class="form-control" />
+                <span asp-validation-for="UserProfile.DisplayName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.Email" class="control-label"></label>
+                <input asp-for="UserProfile.Email" class="form-control" />
+                <span asp-validation-for="UserProfile.Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.CreateDateTime" class="control-label"></label>
+                <input asp-for="UserProfile.CreateDateTime" class="form-control" />
+                <span asp-validation-for="UserProfile.CreateDateTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.ImageLocation" class="control-label"></label>
+                <input asp-for="UserProfile.ImageLocation" class="form-control" />
+                <span asp-validation-for="UserProfile.ImageLocation" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserProfile.UserTypeId" class="control-label">Role</label>
+                <select asp-for="UserProfile.UserTypeId" class="form-control">
+                    @foreach (UserType userType in Model.UserTypes)
+                    {
+                        if (userType.Id == Model.UserProfile.UserTypeId)
+                        {
+                            <option selected value="@userType.Id">@userType.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@userType.Id">@userType.Name</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="UserProfile.UserTypeId" class="text-danger"></span>
+            </div>
+            <div class="form-group text-right">
+                <a asp-action="Index">Cancel</a>
+                <input type="submit" value="Save" class="btn btn-primary ml-4" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

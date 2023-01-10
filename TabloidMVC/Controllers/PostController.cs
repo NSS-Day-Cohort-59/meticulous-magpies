@@ -86,7 +86,7 @@ namespace TabloidMVC.Controllers
             return int.Parse(id);
         }
         // GET: PostController/Delete/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
             Post post = _postRepository.GetPublishedPostById(id);
