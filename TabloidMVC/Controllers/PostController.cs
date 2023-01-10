@@ -6,9 +6,8 @@ using System.Security.Claims;
 using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
-using TabloidMVC.Models;
 using System.Collections.Generic;
-
+using System;
 namespace TabloidMVC.Controllers
 {
     [Authorize]
@@ -88,6 +87,7 @@ namespace TabloidMVC.Controllers
         {
             int userId = GetCurrentUserProfileId();
             var post = _postRepository.GetPublishedPostById(id);
+
             if (post == null)
             {
                 
@@ -97,24 +97,26 @@ namespace TabloidMVC.Controllers
                     return NotFound();
                 }
             }
-
-            return View(post);
+            var vm = new PostEditViewModel();
+            vm.CategoryOptions = _categoryRepository.GetAll();
+            vm.Post = post;
+            return View(vm);
 
         }
 
         // POST: PostController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Post post)
+        public IActionResult Edit(int id, PostEditViewModel vm)
         {
             try
             {
-                _postRepository.UpdatePost(post);
+                _postRepository.UpdatePost(vm.Post);
                 return RedirectToAction("Index");
             }
             catch(Exception ex) 
             {
-                return View(post);
+                return View(vm.Post);
             }
         }
         private int GetCurrentUserProfileId()

@@ -267,16 +267,16 @@ namespace TabloidMVC.Repositories
                 {
                     cmd.CommandText = @"
                         UPDATE Post
-                        SET [Title] = @title
-                        SET [Content] = @content
-                        SET [ImageLocation] = @imagelocation
-                        SET [CreateDateTime] = @createdatetime
-                        SET [PublishDateTime] = @publishdatetime
-                        SET [IsApproved] = @isapproved
-                        SET [CategoryId] = @categoryid
+                        SET 
+                        [Title] = @title,
+                         [Content] = @content,
+                         [ImageLocation] = @imagelocation,
+                         [CreateDateTime] = @createdatetime,
+                         [PublishDateTime] = @publishdatetime,
+                         [CategoryId] = @categoryid
                         WHERE Id = @id
                         ";
-
+                    cmd.Parameters.AddWithValue("@id", post.Id);
                     cmd.Parameters.AddWithValue("@title", post.Title);
                     cmd.Parameters.AddWithValue("@content", post.Content);
                     cmd.Parameters.AddWithValue("@imagelocation", post.ImageLocation);
