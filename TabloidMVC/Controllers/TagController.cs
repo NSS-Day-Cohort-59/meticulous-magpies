@@ -5,6 +5,7 @@ using TabloidMVC.Repositories;
 using Microsoft.VisualBasic;
 using System.Security.Claims;
 using TabloidMVC.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TabloidMVC.Controllers
 {
@@ -18,6 +19,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: TagController
+        [Authorize]
         public ActionResult Index()
         {
             var tags = _tagRepository.GetAllTags(); 
