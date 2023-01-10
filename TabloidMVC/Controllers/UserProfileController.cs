@@ -30,6 +30,20 @@ namespace TabloidMVC.Controllers
             return View(userProfiles);
         }
 
+        // GET: UserProfile/Deactive
+        [Authorize(Roles = "admin")]
+        public ActionResult Deactive()
+        {
+            List<UserProfile> userProfiles = _userProfileRepository.GetAll();
+
+            if (userProfiles.Count < 1)
+            {
+                return NotFound();
+            }
+
+            return View(userProfiles);
+        }
+
         // GET: UserProfileController/Details/5
         [Authorize(Roles = "admin")]
         public ActionResult Details(int id)
@@ -86,24 +100,62 @@ namespace TabloidMVC.Controllers
             }
         }
 
-        // GET: UserProfileController/Delete/5
-        public ActionResult Delete(int id)
+        // GET
+        [Authorize(Roles = "admin")]
+        public ActionResult Deactivate(int id)
         {
-            return View();
+            UserProfile userProfile = _userProfileRepository.GetById(id);
+            
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+
+            return View(userProfile);
         }
 
-        // POST: UserProfileController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Deactivate(int id, UserProfile userProfile)
         {
             try
             {
+                _userProfileRepository.Deactivate(userProfile);
+
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                return View(userProfile);
+            }
+        }
+
+        // GET
+        [Authorize(Roles = "admin")]
+        public ActionResult Activate(int id) 
+        {
+            UserProfile userProfile = _userProfileRepository.GetById(id);
+
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+
+            return View(userProfile);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Activate(int id, UserProfile userProfile)
+        {
+            try
+            {
+                _userProfileRepository.Activate(userProfile);
+
+                return RedirectToAction(nameof(Index));
+            } catch
+            {
+                return View(userProfile);
             }
         }
     }
