@@ -5,6 +5,8 @@ using Microsoft.VisualBasic;
 using System.Security.Claims;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
+using TabloidMVC.Models;
+using System.Collections.Generic;
 
 namespace TabloidMVC.Controllers
 {
@@ -79,6 +81,41 @@ namespace TabloidMVC.Controllers
             }
         }
 
+        // GET: PostController/Edit/5
+        [Authorize(Roles = "admin")]
+        public IActionResult Edit(int id) 
+        {
+            int userId = GetCurrentUserProfileId();
+            var post = _postRepository.GetPublishedPostById(id);
+            if (post == null)
+            {
+                
+                post = _postRepository.GetUserPostById(id, userId);
+                if (post == null)
+                {
+                    return NotFound();
+                }
+            }
+
+            return View(post);
+
+        }
+
+        // POST: PostController/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Post post)
+        {
+            try
+            {
+                _postRepository.UpdatePost(post);
+                return RedirectToAction("Index");
+            }
+            catch(Exception ex) 
+            {
+                return View(post);
+            }
+        }
         private int GetCurrentUserProfileId()
         {
             string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
