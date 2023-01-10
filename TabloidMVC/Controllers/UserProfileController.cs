@@ -1,29 +1,56 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using TabloidMVC.Models;
+using TabloidMVC.Repositories;
 
 namespace TabloidMVC.Controllers
 {
-    public class HomeController1 : Controller
+    public class UserProfileController : Controller
     {
-        // GET: HomeController1
+        private readonly IUserProfileRepository _userProfileRepository;
+        public UserProfileController (IUserProfileRepository profileRepository)
+        {
+            _userProfileRepository = profileRepository;
+        }
+        // GET: UserProfileController
+        [Authorize(Roles = "admin")]
         public ActionResult Index()
         {
-            return View();
+            List<UserProfile> userProfiles = _userProfileRepository.GetAll();
+
+            if (userProfiles.Count < 1)
+            {
+                return NotFound();
+            }
+
+            return View(userProfiles);
         }
 
-        // GET: HomeController1/Details/5
+        // GET: UserProfileController/Details/5
+        [Authorize(Roles = "admin")]
         public ActionResult Details(int id)
         {
-            return View();
+            UserProfile userProfile = _userProfileRepository.GetById(id);
+
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+
+            return View(userProfile);
         }
 
-        // GET: HomeController1/Create
+        // GET: UserProfileController/Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: HomeController1/Create
+        // POST: UserProfileController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(IFormCollection collection)
@@ -38,13 +65,13 @@ namespace TabloidMVC.Controllers
             }
         }
 
-        // GET: HomeController1/Edit/5
+        // GET: UserProfileController/Edit/5
         public ActionResult Edit(int id)
         {
             return View();
         }
 
-        // POST: HomeController1/Edit/5
+        // POST: UserProfileController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, IFormCollection collection)
@@ -59,13 +86,13 @@ namespace TabloidMVC.Controllers
             }
         }
 
-        // GET: HomeController1/Delete/5
+        // GET: UserProfileController/Delete/5
         public ActionResult Delete(int id)
         {
             return View();
         }
 
-        // POST: HomeController1/Delete/5
+        // POST: UserProfileController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
