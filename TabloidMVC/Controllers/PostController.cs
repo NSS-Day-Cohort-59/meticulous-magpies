@@ -20,12 +20,14 @@ namespace TabloidMVC.Controllers
             _categoryRepository = categoryRepository;
         }
 
+        [Authorize]
         public IActionResult Index()
         {
             var posts = _postRepository.GetAllPublishedPosts();
             return View(posts);
         }
 
+        [Authorize]
         public IActionResult Details(int id)
         {
             var post = _postRepository.GetPublishedPostById(id);
@@ -41,6 +43,7 @@ namespace TabloidMVC.Controllers
             return View(post);
         }
 
+        [Authorize]
         public IActionResult Create()
         {
             var vm = new PostCreateViewModel();

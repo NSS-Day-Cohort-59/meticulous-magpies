@@ -38,6 +38,7 @@ namespace TabloidMVC.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, userProfile.Id.ToString()),
                 new Claim(ClaimTypes.Email, userProfile.Email),
+                new Claim(ClaimTypes.Role, "admin") // Matched the case from the DB
             };
 
             var claimsIdentity = new ClaimsIdentity(
