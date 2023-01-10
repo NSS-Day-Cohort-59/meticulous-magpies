@@ -40,7 +40,24 @@ Order By t.Name
                 }
             }
         }
+    public void AddTag(Tag tag)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                            Insert Into Tag (Name)
+                            Output Inserted.Id
+                            Values (@name)";
 
+                    cmd.Parameters.AddWithValue("@name", tag.Name);
+
+                    tag.Id = (int)cmd.ExecuteScalar();
+                }
+            }
+        }
 
 
 
