@@ -32,9 +32,11 @@ namespace TabloidMVC.Controllers
         {
             var posts = _postRepository.GetAllPublishedPosts();
             var users = _userRepository.GetAll();
+            var categories = _categoryRepository.GetAll();
             var vu = new PostByUserViewModel();
             vu.Post = posts;
             vu.UserProfiles = users;
+            vu.Categories = categories;
             return View(vu);
         }
 
@@ -169,6 +171,13 @@ namespace TabloidMVC.Controllers
         public IActionResult UsersPosts(IFormCollection thing)
         {
             var posts = _postRepository.GetAllPostsByUser(int.Parse(thing["UserProfiles"]));
+            return View(posts);
+        }
+
+        [Authorize]
+        public IActionResult CategoryPosts(IFormCollection thing)
+        {
+            var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
             return View(posts);
         }
     }

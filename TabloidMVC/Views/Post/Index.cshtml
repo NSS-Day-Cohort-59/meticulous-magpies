@@ -23,6 +23,18 @@
             <input type="submit" value="Save" class="btn btn-primary" />
         </div>
     </form>
+    <form asp-action="CategoryPosts">
+        <label asp-for="Categories" class="control-label"></label>
+        <select asp-for="Categories" class="form-control">
+            @foreach (var category in Model.Categories)
+            {
+                <option value="@category.Id">@category.Name</option>
+            }
+        </select>
+        <div class="form-group">
+            <input type="submit" value="Save" class="btn btn-primary" />
+        </div>
+    </form>
     <table class="table table-striped">
         <thead>
             <tr>

@@ -6,5 +6,7 @@ namespace TabloidMVC.Models.ViewModels
     {
         public List<Post> Post { get; set; }
         public List<UserProfile> UserProfiles { get; set; }
+
+        public List<Category> Categories { get; set; }
     }
 }
