@@ -45,8 +45,21 @@
     <img src="@Model.ImageLocation" alt="avatar" />
     
     
-    <form asp-action="Deactivate">
-        <input type="submit" value="Deactivate" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+    <form asp-action="Deactivate" method="post">
+        <div class="form-group">
+            @Html.HiddenFor(m => m.FirstName)
+            @Html.HiddenFor(m => m.LastName)
+            @Html.HiddenFor(m => m.DisplayName)
+            @Html.HiddenFor(m => m.Email)
+            @Html.HiddenFor(m => m.CreateDateTime)
+            @Html.HiddenFor(m => m.ImageLocation)
+            @Html.HiddenFor(m => m.UserType.Id)
+            @Html.HiddenFor(m => m.UserType.Name)
+            @Html.HiddenFor(m => m.UserTypeId)
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Deactivate" class="btn btn-danger" /> | <a asp-action="Index">Back to List</a>
+        </div>
+        <span asp-validation-for="UserTypeId" class="text-danger"></span>
     </form>
 </div>

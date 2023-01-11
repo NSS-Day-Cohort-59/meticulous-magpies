@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using TabloidMVC.Models;
+using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
 
 namespace TabloidMVC.Controllers
@@ -12,12 +14,14 @@ namespace TabloidMVC.Controllers
     public class UserProfileController : Controller
     {
         private readonly IUserProfileRepository _userProfileRepository;
-        public UserProfileController (IUserProfileRepository profileRepository)
+        private readonly IUserTypeRepository _userTypeRepository;
+        public UserProfileController (IUserProfileRepository profileRepository, IUserTypeRepository userTypeRepository)
         {
             _userProfileRepository = profileRepository;
+            _userTypeRepository = userTypeRepository;
         }
-        // GET: UserProfileController
-        [Authorize(Roles = "admin")]
+        // GET: UserProfileController      Shows all active accounts
+        [Authorize(Roles = "Admin")]
         public ActionResult Index()
         {
             List<UserProfile> userProfiles = _userProfileRepository.GetAll();
@@ -30,8 +34,8 @@ namespace TabloidMVC.Controllers
             return View(userProfiles);
         }
 
-        // GET: UserProfile/Deactive
-        [Authorize(Roles = "admin")]
+        // GET: UserProfile/Deactive    Shows all deactive accounts
+        [Authorize(Roles = "Admin")]
         public ActionResult Deactive()
         {
             List<UserProfile> userProfiles = _userProfileRepository.GetAll();
@@ -45,7 +49,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: UserProfileController/Details/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Details(int id)
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);
@@ -80,28 +84,56 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: UserProfileController/Edit/5
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
-            return View();
+            UserProfile userProfile = _userProfileRepository.GetById(id);
+            List<UserType> userTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+            if (userProfile == null || userTypes.Count < 1)
+            {
+                return NotFound();
+            }
+
+            EditUserProfileViewModel vm = new()
+            {
+                UserProfile = userProfile,
+                UserTypes = userTypes
+            };
+
+            return View(vm);
         }
 
         // POST: UserProfileController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, EditUserProfileViewModel vm)
         {
+            int amountOfAdmins = _userProfileRepository.GetAdminCount();
+
+            if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == 2)   // 1) Admin  2) Author
+            {
+                ModelState.AddModelError("UserProfile.UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+                return View(vm);
+            }
+            
             try
             {
+                _userProfileRepository.Update(vm.UserProfile);
+
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
-                return View();
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+                return View(vm);
             }
         }
 
         // GET
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Deactivate(int id)
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);
@@ -118,6 +150,14 @@ namespace TabloidMVC.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Deactivate(int id, UserProfile userProfile)
         {
+            int amountOfAdmins = _userProfileRepository.GetAdminCount();
+
+            if (amountOfAdmins == 1 && userProfile.UserTypeId == 1)   // 1) Admin  2) Author
+            {
+                ModelState.AddModelError("UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                return View(userProfile);
+            }
+
             try
             {
                 _userProfileRepository.Deactivate(userProfile);
@@ -131,7 +171,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Activate(int id) 
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);

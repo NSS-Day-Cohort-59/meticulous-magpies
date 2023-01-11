@@ -12,7 +12,7 @@
                 </h1>
                 <div class="card-body">
                     <h2 class="card-title text-center text-secondary">Login</h2>
-                    <form asp-action="Login">
+                    <form asp-action="Login" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
                             <input placeholder="Email" asp-for="Email" class="form-control" />

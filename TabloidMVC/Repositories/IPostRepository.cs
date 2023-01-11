@@ -14,5 +14,7 @@ namespace TabloidMVC.Repositories
         void AddPostTag(PostTag postTag);
 
         List<Post> GetAllPostsByUser(int userProfileId);
+        List<Post> PostsByCategory(int catId);
+        void UpdatePost(Post post);
     }
 }
