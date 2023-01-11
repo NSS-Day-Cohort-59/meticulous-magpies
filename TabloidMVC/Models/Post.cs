@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,8 +29,6 @@ namespace TabloidMVC.Models
         [DisplayName("Category")]
         public int CategoryId { get; set; }
         public Category Category { get; set; }
-        public IEnumerable<Comment> Comments { get; set; }
-
 
         [DisplayName("Author")]
         public int UserProfileId { get; set; }
