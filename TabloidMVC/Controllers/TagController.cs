@@ -60,7 +60,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: TagController/Edit/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
             Tag tag = _tagRepository.GetTagById(id);
@@ -82,7 +82,7 @@ namespace TabloidMVC.Controllers
                 _tagRepository.UpdateTag(tag);
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch
             {
                 return View(tag);
             }

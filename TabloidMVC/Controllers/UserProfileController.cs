@@ -15,12 +15,10 @@ namespace TabloidMVC.Controllers
     {
         private readonly IUserProfileRepository _userProfileRepository;
         private readonly IUserTypeRepository _userTypeRepository;
-        private readonly List<UserType> _userTypes;
         public UserProfileController (IUserProfileRepository profileRepository, IUserTypeRepository userTypeRepository)
         {
             _userProfileRepository = profileRepository;
             _userTypeRepository = userTypeRepository;
-            _userTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
         }
         // GET: UserProfileController
         [Authorize(Roles = "Admin")]
@@ -90,8 +88,9 @@ namespace TabloidMVC.Controllers
         public ActionResult Edit(int id)
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);
+            List<UserType> userTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
 
-            if (userProfile == null || _userTypes.Count < 1)
+            if (userProfile == null || userTypes.Count < 1)
             {
                 return NotFound();
             }
@@ -99,7 +98,7 @@ namespace TabloidMVC.Controllers
             EditUserProfileViewModel vm = new()
             {
                 UserProfile = userProfile,
-                UserTypes = _userTypes
+                UserTypes = userTypes
             };
 
             return View(vm);
@@ -118,7 +117,7 @@ namespace TabloidMVC.Controllers
             }
             catch
             {
-                vm.UserTypes = _userTypes;
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
                 return View(vm);
             }
         }
