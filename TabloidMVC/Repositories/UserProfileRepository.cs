@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.IO;
+using System.Linq;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -205,6 +206,53 @@ namespace TabloidMVC.Repositories
                     
                     return amountOfAdmins;
                 }
+            }
+        }
+        public void Add(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    //!~ Note we do not provide IsActive because it has a default value in the DB ~
+                    cmd.CommandText = @"
+                        INSERT INTO UserProfile (DisplayName, FirstName, LastName, Email, CreateDateTime, ImageLocation, UserTypeId)
+                        VALUES (@displayName, @firstName, @lastName, @email, @createDateTime, @imageLocation, @userTypeId)
+                    ";
+
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
+                    cmd.Parameters.AddWithValue("@firstName", userProfile.FirstName);
+                    cmd.Parameters.AddWithValue("@lastName", userProfile.LastName);
+                    cmd.Parameters.AddWithValue("@email", userProfile.Email);
+                    cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
+
+                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation))
+                    {
+                        //! Checks if the ImageLocation provided by user is a valid URL
+                        Uri uriResult;
+                        bool isValidUrl = Uri.TryCreate(userProfile.ImageLocation, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+                        //! If the URL is NOT valid, exit
+                        if (isValidUrl) { 
+
+                            //! Now check if the URL contains a valid image extension
+                            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+
+                            bool isValidExtension = imageExtensions.Contains(Path.GetExtension(userProfile.ImageLocation).ToLowerInvariant());
+                            //! Unless user provides a valid URL, we default to Gravatar
+                            cmd.Parameters.AddWithValue("@imageLocation", isValidExtension ? userProfile.ImageLocation : Gravatar.GetImageUrl(userProfile.Email));
+                        }
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", Gravatar.GetImageUrl(userProfile.Email));
+                    }
+
+                    cmd.ExecuteNonQuery();
+                }  
             }
         }
         public void Deactivate(UserProfile userProfile)

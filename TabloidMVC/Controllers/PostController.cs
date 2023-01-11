@@ -125,7 +125,7 @@ namespace TabloidMVC.Controllers
                 _postRepository.UpdatePost(vm.Post);
                 return RedirectToAction("Index");
             }
-            catch(Exception ex) 
+            catch
             {
                 return View(vm.Post);
             }
