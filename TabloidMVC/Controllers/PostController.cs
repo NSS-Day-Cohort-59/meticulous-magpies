@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
+using System;
 using System.Security.Claims;
 using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
@@ -14,11 +15,15 @@ namespace TabloidMVC.Controllers
     {
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ITagRepository _tagRepo;
 
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository)
+        public PostController(IPostRepository postRepository, 
+                              ICategoryRepository categoryRepository,
+                              ITagRepository tagRepo)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
+            _tagRepo = tagRepo;
         }
 
         [Authorize]
@@ -50,6 +55,47 @@ namespace TabloidMVC.Controllers
                 }
             }
             return View(post);
+        }
+
+        [Authorize]
+        public IActionResult CreateTags(int id)
+        {
+            var post = _postRepository.GetPublishedPostById(id);
+            if (post == null)
+            {
+                int userId = GetCurrentUserProfileId();
+                post = _postRepository.GetUserPostById(id, userId);
+
+            }
+
+            PostTagViewModel tagViewModel = new PostTagViewModel()
+            {
+                Post = post,
+                Tags = _tagRepo.GetAllTags(),
+                PostTag = new PostTag()
+                {
+                    PostId = post.Id
+                }
+            };
+
+           
+            return View(tagViewModel);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateTags(PostTag postTag, int id)
+        {
+            try
+            {
+                postTag.PostId= id;
+            _postRepository.AddPostTag(postTag);
+                return RedirectToAction("Details", new { id =postTag.PostId });
+            }
+            catch (Exception ex)
+            {
+
+            return View(postTag);
+            }
         }
 
         [Authorize]

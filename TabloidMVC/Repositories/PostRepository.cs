@@ -5,6 +5,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using TabloidMVC.Models;
+using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Utils;
 
 namespace TabloidMVC.Repositories
@@ -256,5 +257,53 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
+
+        public void AddPostTag(PostTag postTag)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                    foreach(var tag in postTag.TagIds)
+                    {
+
+                using (SqlCommand cmd =conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                       Insert Into PostTag (TagId, PostId)
+                       Output Inserted.Id
+                       Values (@tagId, @postId)
+                        ";
+
+                    cmd.Parameters.AddWithValue("@postId", postTag.PostId);
+                    cmd.Parameters.AddWithValue("@tagId", tag);
+
+                    postTag.Id = (int)cmd.ExecuteScalar();
+
+                    }
+
+
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }
