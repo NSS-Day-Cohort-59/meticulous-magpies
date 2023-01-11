@@ -4,6 +4,7 @@ using System.Data;
 using System.Reflection.PortableExecutable;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
 
@@ -172,9 +173,79 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
+        public List<Comment> GetAllComments()
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                       SELECT c.Id, c.Subject, p.Content, 
+                              c.CreateDateTime, c.PublishDateTime, p.UserProfileId,
+                              u.FirstName, u.LastName, u.DisplayName, 
+                              u.Email, u.CreateDateTime, u.ImageLocation AS AvatarImage,
+                              u.UserTypeId, 
+                              uc.[Name] AS UserTypeName
+                         FROM Comment c
+                              LEFT JOIN Post p ON p.PostId = p.id
+                              LEFT JOIN UserProfile u ON p.UserProfileId = u.id
+                              LEFT JOIN UserType ut ON u.UserTypeId = ut.id
+                        WHERE IsApproved = 1 AND PublishDateTime < SYSDATETIME()
+                              AND c.id = @id";
+
+                    var reader = cmd.ExecuteReader();
+
+                    var comments = new List<Comment>();
 
 
-        public void Add(Post post)
+                    reader.Close();
+
+                    return comments;
+                }
+            }
+        }
+
+        public List<Comment> GetAllCommentsByPost(int id)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                   SELECT c.Id, c.Subject, p.Content, 
+                          c.CreateDateTime, c.PublishDateTime, p.UserProfileId,
+                          u.FirstName, u.LastName, u.DisplayName, 
+                          u.Email, u.CreateDateTime, u.ImageLocation AS AvatarImage,
+                          u.UserTypeId, 
+                          uc.[Name] AS UserTypeName
+                     FROM Comment c
+                          LEFT JOIN Post p ON p.PostId = p.id
+                          LEFT JOIN UserProfile u ON p.UserProfileId = u.id
+                          LEFT JOIN UserType ut ON u.UserTypeId = ut.id
+                    WHERE IsApproved = 1 AND PublishDateTime < SYSDATETIME()
+                          AND p.id = @id";
+
+                    cmd.Parameters.AddWithValue("@id", id);
+                    var reader = cmd.ExecuteReader();
+
+                    List<Comment> comments = new List<Comment>();
+                    while (reader.Read())
+                    {
+                        Comment comment = new Comment();
+                        // fill the comment object
+                        comments.Add(comment);
+                    }
+
+                    reader.Close();
+
+                    return comments;
+                }
+            }
+        }
+
+ public void Add(Post post)
         {
             using (var conn = Connection)
             {

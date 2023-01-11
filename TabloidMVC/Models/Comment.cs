@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace TabloidMVC.Models
 {
-    public class Post
+    public class Comment
     {
         public int Id { get; set; }
 
         [Required]
-        public string Title { get; set; }
+        public string Subject { get; set; }
 
         [Required]
         public string Content { get; set; }
-
-        [DisplayName("Header Image URL")]
-        public string ImageLocation { get; set; }
 
         public DateTime CreateDateTime { get; set; }
 
@@ -26,14 +22,13 @@ namespace TabloidMVC.Models
 
         public bool IsApproved { get; set; }
 
-        [Required]
-        [DisplayName("Category")]
-        public int CategoryId { get; set; }
-        public Category Category { get; set; }
+        [DisplayName("Post")]
+        public int PostId { get; set; }
+        public Post Post { get; set; }
+
 
         [DisplayName("Author")]
         public int UserProfileId { get; set; }
         public UserProfile UserProfile { get; set; }
-        public virtual ICollection<Comment> Comments { get; set; }
     }
 }

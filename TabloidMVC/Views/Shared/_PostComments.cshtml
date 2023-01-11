@@ -1,0 +1,19 @@
+﻿<table>
+    <thead>
+        <tr>
+            <th>Comment</th>
+            <th>Author</th>
+            <th>Date Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var comment in Model)
+        {
+            <tr>
+                <td>@comment.Content</td>
+                <td>@comment.UserProfile.DisplayName</td>
+                <td>@comment.CreateDateTime</td>
+            </tr>
+        }
+    </tbody>
+</table>
