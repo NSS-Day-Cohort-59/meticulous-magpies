@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TabloidMVC.Models;
+using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
 
 namespace TabloidMVC.Controllers
@@ -43,7 +47,7 @@ namespace TabloidMVC.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, userProfile.Id.ToString()),
                 new Claim(ClaimTypes.Email, userProfile.Email),
-                new Claim(ClaimTypes.Role, "Admin") 
+                new Claim(ClaimTypes.Role, userProfile.UserType.Name) // Changed Role value to be whatever the Role Name is that's connected to the User in the DB  (UserType)
             };
 
             var claimsIdentity = new ClaimsIdentity(
@@ -60,6 +64,47 @@ namespace TabloidMVC.Controllers
         {
             await HttpContext.SignOutAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        // This action has the anonymous User fill out a form with some basic User Data (see Register.cshtml)
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        // This action handles the data that was given to the server using the model 
+        [HttpPost]
+        public async Task<IActionResult> Register(UserProfile newUserProfile)
+        {
+            //! First, we check if the database already has an account with this email. If it does, we inform the user.
+            UserProfile existingProfile = _userProfileRepository.GetByEmail(newUserProfile.Email);
+
+            if (existingProfile != null)
+            {
+                ModelState.AddModelError("Email", "An account with that email already exists.");
+                return View(newUserProfile);
+            }
+
+            //! Add the default date values to the newUserProfile
+            newUserProfile.CreateDateTime = DateTime.Now;
+            newUserProfile.UserTypeId = 0; // "Author"
+
+            try
+            {
+                _userProfileRepository.
+            }
+            catch
+            {
+
+            }
+
+            // These are the values tied to the cookie -- and the User object 
+            List<Claim> claims = new() // Shorthand for new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userProfile.Id,
+                new Claim(ClaimTypes.Email, userProfile.Email),
+                new Claim(ClaimTypes.Role, userProfile.UserType.Name)
+            };
         }
     }
 }

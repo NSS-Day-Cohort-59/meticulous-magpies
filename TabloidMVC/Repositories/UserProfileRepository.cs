@@ -207,6 +207,35 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
+        public void Add(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand()) 
+                {
+                    //!~ Note we do not provide IsActive because it has a default value in the DB ~
+                    cmd.CommandText = @"
+                        INSERT INTO UserProfile (DisplayName, FirstName, LastName, Email, CreateDateTime, ImageLocation, UserTypeId)
+                        VALUES (@displayName, @firstName, @lastName, @email, @createDateTime, @imageLocation, @userTypeId)
+                    ";
+
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
+                    cmd.Parameters.AddWithValue("@firstName", userProfile.FirstName);
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.LastName);
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.Email);
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.CreateDateTime);
+
+                    //! Checks if the ImageLocation provided by user is a valid URL
+                    Uri uriResult;
+                    bool result = Uri.TryCreate(userProfile.ImageLocation, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+                    cmd.Parameters.AddWithValue("@displayName", result ? userProfile.ImageLocation : Gravatar.GetImageUrl(userProfile.Email)); //! Unless user provides a valid image URL, we default to Gravatar
+                    
+                }
+            }
+        }
         public void Deactivate(UserProfile userProfile)
         {
             using (SqlConnection conn = Connection)
