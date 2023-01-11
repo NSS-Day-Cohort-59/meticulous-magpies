@@ -30,10 +30,11 @@ namespace TabloidMVC.Models
         [DisplayName("Category")]
         public int CategoryId { get; set; }
         public Category Category { get; set; }
+        public IEnumerable<Comment> Comments { get; set; }
+
 
         [DisplayName("Author")]
         public int UserProfileId { get; set; }
         public UserProfile UserProfile { get; set; }
-        public virtual ICollection<Comment> Comments { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Reflection.PortableExecutable;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +13,11 @@ namespace TabloidMVC.Repositories
 {
     public class PostRepository : BaseRepository, IPostRepository
     {
-        public PostRepository(IConfiguration config) : base(config) { }
+        public PostRepository(IConfiguration config) : base(config) {
+        }
+
+        private readonly IPostRepository _postRepository;
+
         public List<Post> GetAllPublishedPosts()
         {
             using (var conn = Connection)
@@ -50,6 +55,36 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
+        public IEnumerable<Comment> GetCommentsByPostIds(List<int> postIds)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                SELECT c.Id, c.Subject, c.Content, c.CreateDateTime, c.PublishDateTime, 
+                c.IsApproved, c.PostId, c.UserProfileId 
+                FROM Comment c 
+                WHERE c.PostId IN @postIds";
+                    cmd.Parameters.AddWithValue("@postIds", postIds);
+                    var reader = cmd.ExecuteReader();
+
+                    var comments = new List<Comment>();
+
+                    while (reader.Read())
+                    {
+                        comments.Add(NewCommentFromReader(reader));
+                    }
+
+                    reader.Close();
+
+                    return comments;
+                }
+            }
+        }
+
+
 
         public List<Post> GetAllPostsByUser(int userProfileId)
         {
@@ -83,6 +118,16 @@ namespace TabloidMVC.Repositories
                     while (reader.Read())
                     {
                         posts.Add(NewPostFromReader(reader));
+                    }
+
+                    // Eager loading the comments
+                    var postIds = posts.Select(p => p.Id).ToList();
+                    var comments = posts.Comments.Where(c => postIds.Contains(c.PostId)).ToList();
+
+                    // Adding comments to each post
+                    foreach (var post in posts)
+                    {
+                        post.Comments = comments.Where(c => c.PostId == post.Id).ToList();
                     }
 
                     reader.Close();
