@@ -33,12 +33,17 @@ namespace TabloidMVC.Controllers
                 ModelState.AddModelError("Email", "Invalid email");
                 return View();
             }
+            else if (!userProfile.IsActive)
+            {
+                ModelState.AddModelError("Email", "This account has been deactivated.");
+                return View();
+            }
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userProfile.Id.ToString()),
                 new Claim(ClaimTypes.Email, userProfile.Email),
-                new Claim(ClaimTypes.Role, "admin") // Matched the case from the DB
+                new Claim(ClaimTypes.Role, "Admin") 
             };
 
             var claimsIdentity = new ClaimsIdentity(

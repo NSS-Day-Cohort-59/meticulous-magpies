@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 using Microsoft.Data.SqlClient;
@@ -23,7 +24,7 @@ namespace TabloidMVC.Repositories
                 {
                     cmd.CommandText = @"
                         SELECT u.id, u.FirstName, u.LastName, u.DisplayName, u.Email,
-                            u.CreateDateTime, u.ImageLocation, u.UserTypeId,
+                            u.CreateDateTime, u.ImageLocation, u.UserTypeId, u.IsActive,
                             ut.[Name] AS UserTypeName
                         FROM UserProfile u
                         LEFT JOIN UserType ut ON u.UserTypeId = ut.id
@@ -53,7 +54,8 @@ namespace TabloidMVC.Repositories
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
                                     Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
-                                }
+                                },
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
                             };
                             userProfiles.Add(newUserProfile);
                         }
@@ -75,6 +77,7 @@ namespace TabloidMVC.Repositories
                                     Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
                                     Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
                                 },
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
                             };
                             userProfiles.Add(newUserProfile);
                         }
@@ -94,7 +97,7 @@ namespace TabloidMVC.Repositories
                 {
                     cmd.CommandText = @"
                        SELECT u.id, u.FirstName, u.LastName, u.DisplayName, u.Email,
-                              u.CreateDateTime, u.ImageLocation, u.UserTypeId,
+                              u.CreateDateTime, u.ImageLocation, u.UserTypeId, u.IsActive,
                               ut.[Name] AS UserTypeName
                          FROM UserProfile u
                               LEFT JOIN UserType ut ON u.UserTypeId = ut.id
@@ -121,6 +124,7 @@ namespace TabloidMVC.Repositories
                                 Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
                                 Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
                             },
+                            IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
                         };
                     }
 
@@ -140,7 +144,7 @@ namespace TabloidMVC.Repositories
                 {
                     cmd.CommandText = @"
                        SELECT u.id, u.FirstName, u.LastName, u.DisplayName, u.Email,
-                              u.CreateDateTime, u.ImageLocation, u.UserTypeId,
+                              u.CreateDateTime, u.ImageLocation, u.UserTypeId, u.IsActive,
                               ut.[Name] AS UserTypeName
                          FROM UserProfile u
                               LEFT JOIN UserType ut ON u.UserTypeId = ut.id
@@ -169,6 +173,7 @@ namespace TabloidMVC.Repositories
                                     Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
                                     Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
                                 },
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
                             };
                         }
 
@@ -181,6 +186,99 @@ namespace TabloidMVC.Repositories
 
             }
         }
+        public int GetAdminCount()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
 
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        SELECT COUNT(uP.Id)
+                        FROM UserProfile uP
+                        LEFT JOIN UserType uT ON uT.Id = uP.UserTypeId
+                        WHERE uT.[Name] = 'Admin'
+                    ";
+
+                    int amountOfAdmins = (int)cmd.ExecuteScalar(); // Cast type of int
+                    
+                    return amountOfAdmins;
+                }
+            }
+        }
+        public void Deactivate(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        UPDATE UserProfile
+                        SET IsActive = 0
+                        WHERE Id = @id
+                    ";
+
+                    cmd.Parameters.AddWithValue("@id", userProfile.Id);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void Activate(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        UPDATE UserProfile
+                        SET IsActive = 1
+                        WHERE Id = @id
+                    ";
+
+                    cmd.Parameters.AddWithValue("@id", userProfile.Id);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void Update(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        UPDATE UserProfile
+                        SET FirstName = @firstName,
+                            LastName = @lastName,
+                            DisplayName = @displayName,
+                            Email = @email,
+                            CreateDateTime = @createDateTime,
+                            ImageLocation = @imageLocation,
+                            UserTypeId = @userTypeId
+                        WHERE Id = @id
+                    ";
+
+                    cmd.Parameters.AddWithValue("@firstName", userProfile.FirstName);
+                    cmd.Parameters.AddWithValue("@lastName", userProfile.LastName);
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
+                    cmd.Parameters.AddWithValue("@email", userProfile.Email);
+                    cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@imageLocation", !string.IsNullOrWhiteSpace(userProfile.ImageLocation) ? userProfile.ImageLocation : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
+                    cmd.Parameters.AddWithValue("@id", userProfile.Id);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

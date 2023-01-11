@@ -6,7 +6,8 @@ using System.Security.Claims;
 using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
-
+using System.Collections.Generic;
+using System;
 namespace TabloidMVC.Controllers
 {
     [Authorize]
@@ -82,13 +83,51 @@ namespace TabloidMVC.Controllers
             }
         }
 
+        // GET: PostController/Edit/5
+        [Authorize(Roles = "admin")]
+        public IActionResult Edit(int id) 
+        {
+            int userId = GetCurrentUserProfileId();
+            var post = _postRepository.GetPublishedPostById(id);
+
+            if (post == null)
+            {
+                
+                post = _postRepository.GetUserPostById(id, userId);
+                if (post == null)
+                {
+                    return NotFound();
+                }
+            }
+            var vm = new PostEditViewModel();
+            vm.CategoryOptions = _categoryRepository.GetAll();
+            vm.Post = post;
+            return View(vm);
+
+        }
+
+        // POST: PostController/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, PostEditViewModel vm)
+        {
+            try
+            {
+                _postRepository.UpdatePost(vm.Post);
+                return RedirectToAction("Index");
+            }
+            catch(Exception ex) 
+            {
+                return View(vm.Post);
+            }
+        }
         private int GetCurrentUserProfileId()
         {
             string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.Parse(id);
         }
         // GET: PostController/Delete/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
             Post post = _postRepository.GetPublishedPostById(id);

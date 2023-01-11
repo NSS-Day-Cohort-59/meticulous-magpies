@@ -40,10 +40,81 @@ Order By t.Name
                 }
             }
         }
+    public void AddTag(Tag tag)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                            Insert Into Tag (Name)
+                            Output Inserted.Id
+                            Values (@name)";
 
+                    cmd.Parameters.AddWithValue("@name", tag.Name);
 
+                    tag.Id = (int)cmd.ExecuteScalar();
+                }
+            }
+        }
+    public Tag GetTagById(int id)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
 
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        Select [Name]
+                        From Tag
+                        Where Id = @id";
 
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    return new Tag { Id = id, Name = (string)cmd.ExecuteScalar() };
+                }
+            }
+        }
+    public void DeleteTag(Tag tag)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                            DELETE FROM Tag
+                            WHERE Id = @id
+                            ";
+
+                    cmd.Parameters.AddWithValue("@id", tag.Id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+    public void UpdateTag(Tag tag)
+        {
+            using (SqlConnection connection= Connection)
+            {
+                connection.Open();
+
+                using (SqlCommand cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        UPDATE Tag
+                        SET [Name] = @name
+                        WHERE Id = @id
+                        ";
+
+                    cmd.Parameters.AddWithValue("@name", tag.Name);
+                    cmd.Parameters.AddWithValue("@id", tag.Id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
     }
 }
