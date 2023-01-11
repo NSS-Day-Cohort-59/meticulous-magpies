@@ -8,6 +8,9 @@ using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
 using System.Collections.Generic;
 using System;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+
 namespace TabloidMVC.Controllers
 {
     [Authorize]
@@ -16,20 +19,26 @@ namespace TabloidMVC.Controllers
         private readonly IPostRepository _postRepository;
         private readonly ICommentRepository _commentRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IUserProfileRepository _userRepository;
 
-
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, ICommentRepository commentRepository)
+        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
-            _commentRepository = commentRepository;
+            _userRepository = userRepository;
         }
 
         [Authorize]
         public IActionResult Index()
         {
             var posts = _postRepository.GetAllPublishedPosts();
-            return View(posts);
+            var users = _userRepository.GetAll();
+            var categories = _categoryRepository.GetAll();
+            var vu = new PostByUserViewModel();
+            vu.Post = posts;
+            vu.UserProfiles = users;
+            vu.Categories = categories;
+            return View(vu);
         }
 
         [Authorize]
@@ -88,7 +97,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: PostController/Edit/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id) 
         {
             int userId = GetCurrentUserProfileId();
@@ -161,5 +170,20 @@ namespace TabloidMVC.Controllers
             }
         }
 
+        }
+
+        [Authorize]
+        public IActionResult UsersPosts(IFormCollection thing)
+        {
+            var posts = _postRepository.GetAllPostsByUser(int.Parse(thing["UserProfiles"]));
+            return View(posts);
+        }
+
+        [Authorize]
+        public IActionResult CategoryPosts(IFormCollection thing)
+        {
+            var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
+            return View(posts);
+        }
     }
 }
