@@ -87,24 +87,34 @@ namespace TabloidMVC.Controllers
 
             //! Add the default date values to the newUserProfile
             newUserProfile.CreateDateTime = DateTime.Now;
-            newUserProfile.UserTypeId = 0; // "Author"
+            newUserProfile.UserTypeId = 2; // "Author"
 
             try
             {
-                _userProfileRepository.
+                _userProfileRepository.Add(newUserProfile);
             }
             catch
             {
-
+                return View(newUserProfile);
             }
+
+            UserProfile createdUserProfile = _userProfileRepository.GetByEmail(newUserProfile.Email);
 
             // These are the values tied to the cookie -- and the User object 
             List<Claim> claims = new() // Shorthand for new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userProfile.Id,
-                new Claim(ClaimTypes.Email, userProfile.Email),
-                new Claim(ClaimTypes.Role, userProfile.UserType.Name)
+                new Claim(ClaimTypes.NameIdentifier, createdUserProfile.Id.ToString()),
+                new Claim(ClaimTypes.Email, createdUserProfile.Email),
+                new Claim(ClaimTypes.Role, createdUserProfile.UserType.Name)
             };
+
+            ClaimsIdentity claimsIdentity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme); // Shorthand new()
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity));
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }
