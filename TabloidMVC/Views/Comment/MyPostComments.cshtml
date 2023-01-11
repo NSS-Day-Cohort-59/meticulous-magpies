@@ -1,4 +1,10 @@
-﻿@model IEnumerable<TabloidMVC.Models.Post>
+﻿@model IEnumerable<TabloidMVC.Models.Comment>
+
+@{
+    ViewData["Title"] = "MyPostComments";
+}
+
+<h1>MyPostComments</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -10,13 +16,10 @@
                 @Html.DisplayNameFor(model => model.Id)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Title)
+                @Html.DisplayNameFor(model => model.Subject)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Content)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImageLocation)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CreateDateTime)
@@ -28,7 +31,7 @@
                 @Html.DisplayNameFor(model => model.IsApproved)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.CategoryId)
+                @Html.DisplayNameFor(model => model.PostId)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.UserProfileId)
@@ -43,13 +46,10 @@
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Title)
+                @Html.DisplayFor(modelItem => item.Subject)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImageLocation)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreateDateTime)
@@ -61,7 +61,7 @@
                 @Html.DisplayFor(modelItem => item.IsApproved)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.CategoryId)
+                @Html.DisplayFor(modelItem => item.PostId)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.UserProfileId)

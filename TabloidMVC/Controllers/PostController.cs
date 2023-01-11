@@ -17,6 +17,7 @@ namespace TabloidMVC.Controllers
     public class PostController : Controller
     {
         private readonly IPostRepository _postRepository;
+        private readonly ICommentRepository _commentRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
 
@@ -43,11 +44,14 @@ namespace TabloidMVC.Controllers
         [Authorize]
         public IActionResult MyPosts()
         {
+            var post = _postRepository.Posts
+                .Include(p => p.Comments)
+                .FirstOrDefault(p => p.Id == postId);
             int authorId = GetCurrentUserProfileId();
             var posts = _postRepository.GetAllPostsByUser(authorId);
             return View(posts);
-        }
 
+        }
         [Authorize]
         public IActionResult Details(int id)
         {
@@ -164,6 +168,7 @@ namespace TabloidMVC.Controllers
             {
                 return View(post);
             }
+        }
 
         }
 
