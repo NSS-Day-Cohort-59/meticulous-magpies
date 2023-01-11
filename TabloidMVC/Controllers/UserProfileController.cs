@@ -20,7 +20,7 @@ namespace TabloidMVC.Controllers
             _userProfileRepository = profileRepository;
             _userTypeRepository = userTypeRepository;
         }
-        // GET: UserProfileController
+        // GET: UserProfileController      Shows all active accounts
         [Authorize(Roles = "Admin")]
         public ActionResult Index()
         {
@@ -34,7 +34,7 @@ namespace TabloidMVC.Controllers
             return View(userProfiles);
         }
 
-        // GET: UserProfile/Deactive
+        // GET: UserProfile/Deactive    Shows all deactive accounts
         [Authorize(Roles = "Admin")]
         public ActionResult Deactive()
         {
@@ -109,6 +109,16 @@ namespace TabloidMVC.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, EditUserProfileViewModel vm)
         {
+            int amountOfAdmins = _userProfileRepository.GetAdminCount();
+
+            if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == 2)   // 1) Admin  2) Author
+            {
+                ModelState.AddModelError("UserProfile.UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+                return View(vm);
+            }
+            
             try
             {
                 _userProfileRepository.Update(vm.UserProfile);
@@ -140,6 +150,14 @@ namespace TabloidMVC.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Deactivate(int id, UserProfile userProfile)
         {
+            int amountOfAdmins = _userProfileRepository.GetAdminCount();
+
+            if (amountOfAdmins == 1 && userProfile.UserTypeId == 1)   // 1) Admin  2) Author
+            {
+                ModelState.AddModelError("UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                return View(userProfile);
+            }
+
             try
             {
                 _userProfileRepository.Deactivate(userProfile);

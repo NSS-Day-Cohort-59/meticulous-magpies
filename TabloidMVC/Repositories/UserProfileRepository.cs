@@ -186,6 +186,27 @@ namespace TabloidMVC.Repositories
 
             }
         }
+        public int GetAdminCount()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        SELECT COUNT(uP.Id)
+                        FROM UserProfile uP
+                        LEFT JOIN UserType uT ON uT.Id = uP.UserTypeId
+                        WHERE uT.[Name] = 'Admin'
+                    ";
+
+                    int amountOfAdmins = (int)cmd.ExecuteScalar(); // Cast type of int
+                    
+                    return amountOfAdmins;
+                }
+            }
+        }
         public void Deactivate(UserProfile userProfile)
         {
             using (SqlConnection conn = Connection)
