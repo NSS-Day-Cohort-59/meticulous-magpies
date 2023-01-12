@@ -46,7 +46,7 @@
                 <input asp-for="UserProfile.ImageLocation" class="form-control" />
                 <span asp-validation-for="UserProfile.ImageLocation" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group d-flex flex-column">
                 @if (User.IsInRole("Admin") && Model.UserProfile.Id != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
                 {
                     <label asp-for="UserProfile.UserTypeId" class="control-label">Role</label>
@@ -63,7 +63,10 @@
                             }
                         }
                     </select>
+                    <span class="text-danger">Demotion Requests: @Model.DemotionRequests</span>
                     <span asp-validation-for="UserProfile.UserTypeId" class="text-danger"></span>
+                    @Html.HiddenFor(m => m.DemotionRequests)
+                    @Html.HiddenFor(m => m.ExistingDemotionRequesterId)
                 }
                 else
                 {
@@ -71,7 +74,7 @@
                 }
             </div>
             <div class="form-group text-right">
-                <a asp-action="Index">Cancel</a>
+                <a asp-action="Index" class="w-100">Cancel</a>
                 <input type="submit" value="Save" class="btn btn-primary ml-4" />
             </div>
         </form>

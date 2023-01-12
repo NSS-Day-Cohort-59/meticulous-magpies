@@ -8,7 +8,7 @@ using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
 using System.Collections.Generic;
-using System;
+
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 
@@ -203,7 +204,7 @@ namespace TabloidMVC.Repositories
                     ";
 
                     int amountOfAdmins = (int)cmd.ExecuteScalar(); // Cast type of int
-                    
+
                     return amountOfAdmins;
                 }
             }
@@ -240,7 +241,7 @@ namespace TabloidMVC.Repositories
                     }
 
                     cmd.ExecuteNonQuery();
-                }  
+                }
             }
         }
         public void Deactivate(UserProfile userProfile)
@@ -320,6 +321,128 @@ namespace TabloidMVC.Repositories
                     {
                         cmd.Parameters.AddWithValue("@imageLocation", GravatarUtil.GetImageUrl(userProfile.Email));
                     }
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void RequestChange(AdminRequest request)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT INTO dbo.[AdminRequest] (RequesterUserProfileId, TargetUserProfileId, Demote, Deactivate, CreateDateTime)
+                        VALUES (@requesterId, @targetId, @demote, @deactivate, @createDateTime)
+                    ";
+
+                    cmd.Parameters.AddWithValue("@requesterId", request.RequesterUserProfileId);
+                    cmd.Parameters.AddWithValue("@targetId", request.TargetUserProfileId);
+                    cmd.Parameters.AddWithValue("@demote", request.Demote ? 1 : 0);
+                    cmd.Parameters.AddWithValue("@deactivate", request.Deactivate ? 1 : 0);
+                    cmd.Parameters.AddWithValue("@createDateTime", request.CreateDateTime ?? DateTime.Now);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public byte RequestsByUserId(int userId, byte requestType)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @$"
+                        SELECT CAST(COUNT(Id) AS tinyint) 
+                        FROM dbo.AdminRequest
+                        WHERE TargetUserProfileId = @userId 
+                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND IsCancelled = 0
+                            AND CloseDateTime IS NULL
+                    ";
+
+                    cmd.Parameters.AddWithValue("@userId", userId);
+
+                    byte requests = (byte)cmd.ExecuteScalar();
+                    return requests;
+                }
+            }
+        }
+        public void RetireRequest(int userId, byte requestType)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @$"
+                        UPDATE dbo.AdminRequest
+                        SET CloseDateTime = @closeDateTime
+                        WHERE TargetUserProfileId = @userId 
+                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND IsCancelled = 0
+                            AND CloseDateTime IS NULL
+                    ";
+
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@closeDateTime", DateTime.Now);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public int GetRequesterId(int targetId, byte requestType)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @$"
+                        SELECT RequesterUserProfileId
+                        FROM dbo.AdminRequest
+                        WHERE {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND TargetUserProfileId = @targetId
+                            AND IsCancelled = 0
+                            AND CloseDateTime IS NULL
+                    ";
+
+                    cmd.Parameters.AddWithValue("@targetId", targetId);
+
+                    int requesterId = (int)cmd.ExecuteScalar();
+                    return requesterId;
+                }
+            }
+        }
+        public void CancelRequest(int requesterId, int userId, byte requestType) 
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @$"
+                        UPDATE dbo.[AdminRequest]
+                        SET [CloseDateTime] = @closeDateTime,
+                            [IsCancelled] = 1
+                        WHERE [CloseDateTime] IS NULL
+                            AND [RequesterUserProfileId] = @requesterId
+                            AND [TargetUserProfileId] = @userId
+                            AND IsCancelled = 0
+                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                    ";
+
+                    cmd.Parameters.AddWithValue("@closeDateTime", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@requesterId", requesterId);
+                    cmd.Parameters.AddWithValue("@userId", userId);
 
                     cmd.ExecuteNonQuery();
                 }

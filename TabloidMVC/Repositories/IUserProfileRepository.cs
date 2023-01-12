@@ -10,6 +10,11 @@ namespace TabloidMVC.Repositories
         UserProfile GetByEmail(string email);
         UserProfile GetById(int id);
         int GetAdminCount();
+        int GetRequesterId(int userId, byte requestType);
+        byte RequestsByUserId(int id, byte requestType);
+        void RequestChange(AdminRequest request);
+        void RetireRequest(int userId, byte requestType);
+        void CancelRequest(int requesterId, int userId, byte requestType);
         void Add(UserProfile userProfile);
         void Deactivate (UserProfile userProfile);
         void Activate (UserProfile userProfile);

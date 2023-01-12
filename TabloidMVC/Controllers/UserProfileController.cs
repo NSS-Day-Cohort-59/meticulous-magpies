@@ -86,8 +86,14 @@ namespace TabloidMVC.Controllers
             EditUserProfileViewModel vm = new()
             {
                 UserProfile = userProfile,
-                UserTypes = userTypes
+                UserTypes = userTypes,
+                DemotionRequests = _userProfileRepository.RequestsByUserId(id, 0) //! Demote: 0
             };
+            //! Check if there is already a demotionRequest, and add the requester's id if there is.
+            if (vm.DemotionRequests == 1)
+            {
+                vm.ExistingDemotionRequesterId = _userProfileRepository.GetRequesterId(id, 0);
+            }
 
             return View(vm);
         }
@@ -102,7 +108,8 @@ namespace TabloidMVC.Controllers
             UserProfile currentProfile = _userProfileRepository.GetById(id);
             UserProfile existingProfile = _userProfileRepository.GetByEmail(vm.UserProfile.Email);
 
-            if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == 2)   // 1) Admin  2) Author
+            //! Check if they are trying to demote the last admin
+            if (amountOfAdmins == 1 && (vm.UserProfile.UserTypeId == 2 && currentProfile.UserTypeId == 1))   // 1) Admin  2) Author
             {
                 ModelState.AddModelError("UserProfile.UserTypeId", "Make someone else an admin before the User Profile can be changed.");
                 vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
@@ -110,6 +117,7 @@ namespace TabloidMVC.Controllers
                 return View(vm);
             }
             
+            //! Check if they are trying to get an email that another user already has
             if (currentProfile.Email != vm.UserProfile.Email && existingProfile != null)
             {
                 ModelState.AddModelError("UserProfile.Email", "An account with that email already exists.");
@@ -120,8 +128,44 @@ namespace TabloidMVC.Controllers
 
             try
             {
-                _userProfileRepository.Update(vm.UserProfile);
+                //! Construct a new demotion request if existing one is not from current admin && trying to demote an admin
+                if (vm.UserProfile.UserTypeId == 2 && vm.UserProfile.UserTypeId != currentProfile.UserTypeId && int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) != vm.ExistingDemotionRequesterId)
+                {
+                    AdminRequest newRequest = new()
+                    {
+                        RequesterUserProfileId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
+                        TargetUserProfileId = currentProfile.Id,
+                        Demote = true,
+                        Deactivate = false
+                    };
 
+                    _userProfileRepository.RequestChange(newRequest);
+
+                    //! If it was 1 before this current request*
+                    if (vm.DemotionRequests == 1)
+                    {
+                        _userProfileRepository.RetireRequest(currentProfile.Id, 0);
+                    }
+                    else
+                    {
+                        vm.UserProfile.UserTypeId = 1;
+                    }
+                }
+                else if (int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) == vm.ExistingDemotionRequesterId && vm.UserProfile.UserTypeId == 1) //! If the admin edits and saves their role as admin
+                {
+                    _userProfileRepository.CancelRequest(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)), vm.UserProfile.Id, 0);
+                }
+                else if (vm.UserProfile.UserTypeId == 2 && currentProfile.UserTypeId == 1) //! If the admin is trying to demote them again
+                {
+                    ModelState.AddModelError("UserProfile.UserTypeId", "You already put in a demotion request for this user.");
+                    vm.UserProfile.UserTypeId = 2;
+                    vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+                    return View(vm);
+                }
+
+                _userProfileRepository.Update(vm.UserProfile);
+                
                 return RedirectToAction(nameof(Index));
             }
             catch
