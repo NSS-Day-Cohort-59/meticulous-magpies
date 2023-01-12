@@ -36,7 +36,7 @@ CREATE TABLE [UserProfile] (
   [CreateDateTime] datetime NOT NULL,
   [ImageLocation] nvarchar(255),
   [UserTypeId] integer NOT NULL,
-  [IsCancelled] bit NOT NULL DEFAULT(0)
+  [IsActive] bit NOT NULL DEFAULT(1)
 
   CONSTRAINT [FK_User_UserType] FOREIGN KEY ([UserTypeId]) REFERENCES [UserType] ([Id])
 )
@@ -49,7 +49,7 @@ CREATE TABLE [AdminRequest] (
 	[TargetUserProfileId] int NOT NULL,
 	[Demote] bit NOT NULL DEFAULT(0),
 	[Deactivate] bit NOT NULL DEFAULT(0),
-	[IsCurrent] bit NOT NULL DEFAULT(1),
+	[IsCancelled] bit NOT NULL DEFAULT(0),
 
 	CONSTRAINT [FK_AdminRequest_UserProfile_Requester] FOREIGN KEY ([RequesterUserProfileId]) REFERENCES [UserProfile] ([Id]),
 	CONSTRAINT [FK_AdminRequest_UserProfile_Target] FOREIGN KEY ([TargetUserProfileId]) REFERENCES [UserProfile] ([Id])
