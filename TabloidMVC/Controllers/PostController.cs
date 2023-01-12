@@ -21,13 +21,19 @@ namespace TabloidMVC.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
         private readonly ITagRepository _tagRepo;
+        private readonly ISubscriptionRepository _subscriptionRepository;
 
-        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
+        public PostController(IPostRepository postRepository,
+                              ITagRepository tagRepo, 
+                              ICategoryRepository categoryRepository, 
+                              IUserProfileRepository userRepository,
+                              ISubscriptionRepository subscriptionRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _tagRepo = tagRepo;
+            _subscriptionRepository= subscriptionRepository;
         }
 
         [Authorize]
@@ -57,18 +63,21 @@ namespace TabloidMVC.Controllers
             var post = _postRepository.GetPublishedPostById(id);
             if (post == null)
             {
-                int userId = GetCurrentUserProfileId();
-                post = _postRepository.GetUserPostById(id, userId);
+                int UserId = GetCurrentUserProfileId();
+                post = _postRepository.GetUserPostById(id, UserId);
                 if (post == null)
                 {
                     return NotFound();
                 }
             }
+            int userId = GetCurrentUserProfileId();
             var selectedTags = _tagRepo.GetTagsOnPost(id);
+            var subcribed = _subscriptionRepository.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
-                Tags = selectedTags
+                Tags = selectedTags,
+                Subscription = subcribed
             };
 
 
@@ -232,6 +241,41 @@ namespace TabloidMVC.Controllers
             }
 
         }
+        [Authorize]
+        
+        public ActionResult Subscribe(int id)
+        {
+            int userId = GetCurrentUserProfileId();
+            var post = _postRepository.GetPublishedPostById(id);
+            Subscription subscribe = new Subscription()
+            {
+
+                SubscriberUserProfileId = userId,
+                ProviderUserProfileId = post.UserProfileId,
+               
+            };
+           
+            return View(subscribe);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Subscribe(Subscription subscription, int id)
+        {
+            try
+            {
+            subscription.BeginDateTime = DateTime.Now;
+            _subscriptionRepository.AddSubscription(subscription);
+
+            return RedirectToAction("Details", new { id });
+
+            }
+            catch
+            {
+                return View(subscription);
+            }
+        }
+
 
         [Authorize]
         public IActionResult UsersPosts(IFormCollection thing)
@@ -246,5 +290,11 @@ namespace TabloidMVC.Controllers
             var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
             return View(posts);
         }
+
+
+
+
+
+
     }
 }
