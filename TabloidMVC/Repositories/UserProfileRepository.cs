@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.IO;
+using System.Linq;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -207,6 +208,41 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
+        public void Add(UserProfile userProfile)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    //!~ Note we do not provide IsActive because it has a default value in the DB ~
+                    cmd.CommandText = @"
+                        INSERT INTO UserProfile (DisplayName, FirstName, LastName, Email, CreateDateTime, ImageLocation, UserTypeId)
+                        VALUES (@displayName, @firstName, @lastName, @email, @createDateTime, @imageLocation, @userTypeId)
+                    ";
+
+                    cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
+                    cmd.Parameters.AddWithValue("@firstName", userProfile.FirstName);
+                    cmd.Parameters.AddWithValue("@lastName", userProfile.LastName);
+                    cmd.Parameters.AddWithValue("@email", userProfile.Email);
+                    cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
+
+                    //! If the user passed a valid imageUrl, USE IT
+                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation) && UrlUtil.IsValidImage(userProfile.Email))
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", userProfile.ImageLocation);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", GravatarUtil.GetImageUrl(userProfile.Email));
+                    }
+
+                    cmd.ExecuteNonQuery();
+                }  
+            }
+        }
         public void Deactivate(UserProfile userProfile)
         {
             using (SqlConnection conn = Connection)
@@ -272,9 +308,18 @@ namespace TabloidMVC.Repositories
                     cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
                     cmd.Parameters.AddWithValue("@email", userProfile.Email);
                     cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
-                    cmd.Parameters.AddWithValue("@imageLocation", !string.IsNullOrWhiteSpace(userProfile.ImageLocation) ? userProfile.ImageLocation : DBNull.Value);
                     cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
                     cmd.Parameters.AddWithValue("@id", userProfile.Id);
+
+                    //! If the user passed a valid imageUrl, USE IT
+                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation) && UrlUtil.IsValidImage(userProfile.Email))
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", userProfile.ImageLocation);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", GravatarUtil.GetImageUrl(userProfile.Email));
+                    }
 
                     cmd.ExecuteNonQuery();
                 }

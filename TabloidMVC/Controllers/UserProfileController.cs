@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
+using TabloidMVC.Utils;
 
 namespace TabloidMVC.Controllers
 {
@@ -95,6 +99,11 @@ namespace TabloidMVC.Controllers
                 return NotFound();
             }
 
+            if (userProfile.ImageLocation == GravatarUtil.GetImageUrl(userProfile.Email))
+            {
+                userProfile.ImageLocation = null;
+            }    
+
             EditUserProfileViewModel vm = new()
             {
                 UserProfile = userProfile,
@@ -110,6 +119,15 @@ namespace TabloidMVC.Controllers
         public ActionResult Edit(int id, EditUserProfileViewModel vm)
         {
             int amountOfAdmins = _userProfileRepository.GetAdminCount();
+            UserProfile currentProfile = _userProfileRepository.GetById(id);
+
+            if (currentProfile.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) && currentProfile.UserTypeId != vm.UserProfile.UserTypeId)
+            {
+                ModelState.AddModelError("UserProfile.UserTypeId", "You cannot change your own role.");
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+                return View(vm);
+            }
 
             if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == 2)   // 1) Admin  2) Author
             {
@@ -119,6 +137,7 @@ namespace TabloidMVC.Controllers
                 return View(vm);
             }
             
+
             try
             {
                 _userProfileRepository.Update(vm.UserProfile);
@@ -152,9 +171,14 @@ namespace TabloidMVC.Controllers
         {
             int amountOfAdmins = _userProfileRepository.GetAdminCount();
 
-            if (amountOfAdmins == 1 && userProfile.UserTypeId == 1)   // 1) Admin  2) Author
+            if (amountOfAdmins == 1)
             {
                 ModelState.AddModelError("UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                return View(userProfile);
+            }
+            else if (int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) == userProfile.Id)
+            {
+                ModelState.AddModelError("UserTypeId", "You cannot deactivate your own account.");
                 return View(userProfile);
             }
 

@@ -10,8 +10,9 @@ namespace TabloidMVC.Repositories
         UserProfile GetByEmail(string email);
         UserProfile GetById(int id);
         int GetAdminCount();
-        void Deactivate (UserProfile profile);
-        void Activate (UserProfile profile);
-        void Update(UserProfile profile);
+        void Add(UserProfile userProfile);
+        void Deactivate (UserProfile userProfile);
+        void Activate (UserProfile userProfile);
+        void Update(UserProfile userProfile);
     }
 }
