@@ -77,14 +77,17 @@ namespace TabloidMVC.Controllers
                 post = _postRepository.GetUserPostById(id, userId);
 
             }
+            var selectedTags = _tagRepo.GetTagsByPostId(id);
 
             PostTagViewModel tagViewModel = new PostTagViewModel()
             {
                 Post = post,
                 Tags = _tagRepo.GetAllTags(),
+
                 PostTag = new PostTag()
                 {
-                    PostId = post.Id
+                    PostId = post.Id,
+                    TagIds = selectedTags
                 }
             };
 
@@ -97,6 +100,7 @@ namespace TabloidMVC.Controllers
         {
             try
             {
+                _postRepository.DeletePostTagsonPost(id);
                 postTag.PostId = id;
                 _postRepository.AddPostTag(postTag);
                 return RedirectToAction("Details", new { id = postTag.PostId });
