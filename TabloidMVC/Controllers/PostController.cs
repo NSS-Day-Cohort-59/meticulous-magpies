@@ -154,6 +154,37 @@ namespace TabloidMVC.Controllers
             }
         }
 
+        [Authorize]
+        public IActionResult CreateComment(int id)
+        {
+            var post = _postRepository.GetPublishedPostById(id);
+            Comment comment = new Comment()
+            {
+                PostId = post.Id,
+                UserProfileId = GetCurrentUserProfileId()
+            };
+            return View(comment);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult CreateComment(Comment comment)
+        {
+            try
+            {
+                comment.CreateDateTime= DateAndTime.Now;
+                _commentRepository.Add(comment);
+                
+
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch
+            {
+                return View(comment);
+            }
+        }
+
+
         // GET: PostController/Edit/5
         [Authorize]
         public IActionResult Edit(int id)
