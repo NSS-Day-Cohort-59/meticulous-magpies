@@ -4,6 +4,7 @@ using System.Data;
 using System.Reflection.PortableExecutable;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
 
@@ -173,6 +174,32 @@ namespace TabloidMVC.Repositories
                     cmd.CommandText = "DELETE FROM Comment WHERE Id = @id";
                     cmd.Parameters.AddWithValue("@id", id);
                     cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void Add(Comment comment)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT INTO Comment (
+                            Subject, Content, CreateDateTime, PostId, UserProfileId
+                             )
+                        OUTPUT INSERTED.ID
+                        VALUES (
+                            @Subject, @Content, @CreateDateTime,
+                            @PostId, @UserProfileId )";
+                    cmd.Parameters.AddWithValue("@Subject", comment.Subject);
+                    cmd.Parameters.AddWithValue("@Content", comment.Content);
+                    cmd.Parameters.AddWithValue("@CreateDateTime", comment.CreateDateTime);
+                    cmd.Parameters.AddWithValue("@UserProfileId", comment.UserProfileId);
+                    cmd.Parameters.AddWithValue("@PostId", comment.PostId);
+
+                    comment.Id = (int)cmd.ExecuteScalar();
                 }
             }
         }
