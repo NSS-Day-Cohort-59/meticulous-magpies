@@ -53,12 +53,12 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: UserProfileController/Details/5
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public ActionResult Details(int id)
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);
 
-            if (userProfile == null)
+            if (userProfile == null || (!User.IsInRole("Admin") && userProfile.Id != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))))
             {
                 return NotFound();
             }
@@ -66,35 +66,14 @@ namespace TabloidMVC.Controllers
             return View(userProfile);
         }
 
-        // GET: UserProfileController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: UserProfileController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
         // GET: UserProfileController/Edit/5
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public ActionResult Edit(int id)
         {
             UserProfile userProfile = _userProfileRepository.GetById(id);
             List<UserType> userTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
 
-            if (userProfile == null || userTypes.Count < 1)
+            if (userProfile == null || (!User.IsInRole("Admin") && userProfile.Id != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))) || userTypes.Count < 1)
             {
                 return NotFound();
             }
@@ -115,19 +94,13 @@ namespace TabloidMVC.Controllers
 
         // POST: UserProfileController/Edit/5
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, EditUserProfileViewModel vm)
         {
             int amountOfAdmins = _userProfileRepository.GetAdminCount();
             UserProfile currentProfile = _userProfileRepository.GetById(id);
-
-            if (currentProfile.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) && currentProfile.UserTypeId != vm.UserProfile.UserTypeId)
-            {
-                ModelState.AddModelError("UserProfile.UserTypeId", "You cannot change your own role.");
-                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
-
-                return View(vm);
-            }
+            UserProfile existingProfile = _userProfileRepository.GetByEmail(vm.UserProfile.Email);
 
             if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == 2)   // 1) Admin  2) Author
             {
@@ -137,6 +110,13 @@ namespace TabloidMVC.Controllers
                 return View(vm);
             }
             
+            if (currentProfile.Email != vm.UserProfile.Email && existingProfile != null)
+            {
+                ModelState.AddModelError("UserProfile.Email", "An account with that email already exists.");
+                vm.UserTypes = _userTypeRepository.GetAll().OrderBy(x => x.Name).ToList();
+
+                return View(vm);
+            }
 
             try
             {
