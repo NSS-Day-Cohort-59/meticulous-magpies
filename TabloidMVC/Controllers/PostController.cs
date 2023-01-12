@@ -21,13 +21,15 @@ namespace TabloidMVC.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
         private readonly ITagRepository _tagRepo;
+        private readonly ICommentRepository _commentRepository;
 
-        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
+        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _tagRepo = tagRepo;
+            _commentRepository = commentRepository;
         }
 
         [Authorize]
@@ -65,10 +67,12 @@ namespace TabloidMVC.Controllers
                 }
             }
             var selectedTags = _tagRepo.GetTagsOnPost(id);
+            var postComments = _commentRepository.GetAllCommentsByPost(id);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
-                Tags = selectedTags
+                Tags = selectedTags,
+                Comments = postComments
             };
 
 
