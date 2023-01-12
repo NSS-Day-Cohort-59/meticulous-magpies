@@ -67,8 +67,6 @@ namespace TabloidMVC.Repositories
                             Subject = reader.GetString(reader.GetOrdinal("Subject")),
                             Content = reader.GetString(reader.GetOrdinal("Content")),
                             CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
-                            PublishDateTime = reader.GetDateTime(reader.GetOrdinal("PublishDateTime")),
-                            IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved")),
                             UserProfileId = reader.GetInt32(reader.GetOrdinal("UserProfileId")),
                             PostId = reader.GetInt32(reader.GetOrdinal("PostId"))
                         };
@@ -128,13 +126,11 @@ namespace TabloidMVC.Repositories
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                    INSERT INTO Comment (Subject, Content, CreateDateTime, PublishDateTime, IsApproved, UserProfileId, PostId)
-                    VALUES (@subject, @content, @createDateTime, @publishDateTime, @isApproved, @userProfileId, @postId)";
+                    INSERT INTO Comment (Subject, Content, CreateDateTime, UserProfileId, PostId)
+                    VALUES (@subject, @content, @createDateTime, @userProfileId, @postId)";
                     cmd.Parameters.AddWithValue("@subject", comment.Subject);
                     cmd.Parameters.AddWithValue("@content", comment.Content);
                     cmd.Parameters.AddWithValue("@createDateTime", comment.CreateDateTime);
-                    cmd.Parameters.AddWithValue("@publishDateTime", comment.PublishDateTime);
-                    cmd.Parameters.AddWithValue("@isApproved", comment.IsApproved);
                     cmd.Parameters.AddWithValue("@userProfileId", comment.UserProfileId);
                     cmd.Parameters.AddWithValue("@postId", comment.PostId);
                     cmd.ExecuteNonQuery();
@@ -152,12 +148,10 @@ namespace TabloidMVC.Repositories
                     cmd.CommandText = @"
                     UPDATE Comment
                     SET Subject = @subject,
-                        Content = @content,
-                        PublishDateTime = @publishDateTime
+                        Content = @content
                     WHERE Id = @id";
                     cmd.Parameters.AddWithValue("@subject", comment.Subject);
                     cmd.Parameters.AddWithValue("@content", comment.Content);
-                    cmd.Parameters.AddWithValue("@publishDateTime", comment.PublishDateTime);
                     cmd.Parameters.AddWithValue("@id", comment.Id);
                     cmd.ExecuteNonQuery();
                 }

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using Microsoft.Extensions.Hosting;
 
 namespace TabloidMVC.Controllers
 {
@@ -168,17 +169,60 @@ namespace TabloidMVC.Controllers
 
         [HttpPost]
         [Authorize]
-        public IActionResult CreateComment(Comment comment)
+        public IActionResult CreateComment(Comment comment, int id)
         {
             try
             {
-                comment.CreateDateTime= DateAndTime.Now;
+                var post = _postRepository.GetPublishedPostById(id);
+                comment.CreateDateTime = DateAndTime.Now;
+                comment.PostId = post.Id;
+                comment.UserProfileId = GetCurrentUserProfileId();
+
                 _commentRepository.Add(comment);
                 
 
                 return RedirectToAction("Details", new { id = comment.PostId });
             }
             catch
+            {
+                return View(comment);
+            }
+        }
+
+        // GET: PostController/EditComment/5
+        [Authorize]
+        public IActionResult EditComment(int id)
+        {
+            int userId = GetCurrentUserProfileId();
+            var comment = _commentRepository.GetCommentById(id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            if (!User.IsInRole("Admin") && comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
+                return NotFound();
+            }
+
+            return View(comment);
+
+        }
+
+
+        // POST: PostController/EditComment/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditComment(Comment comment)
+        {
+            try
+            {
+                _commentRepository.UpdateComment(comment);
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch (Exception ex)
             {
                 return View(comment);
             }
