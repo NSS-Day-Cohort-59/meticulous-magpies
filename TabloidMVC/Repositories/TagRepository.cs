@@ -88,9 +88,10 @@ Order By t.Name
                         Select *
                         From Post p 
                         Join PostTag pt on p.Id = pt.PostId
-                        Join Tag t on t.Id = pt.TagId";
+                        Join Tag t on t.Id = pt.TagId
+                        Where p.ID = @id";
 
-                    
+                    cmd.Parameters.AddWithValue("@id", id);
                     var reader = cmd.ExecuteReader();
                     var tags = new List<int>();
                     while (reader.Read())
@@ -102,7 +103,37 @@ Order By t.Name
                 }
             }
         }
-    public void DeleteTag(Tag tag)
+        public List<Tag> GetTagsOnPost(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        Select t.ID as TagId, t.Name as TagName
+                        From Post p 
+                        Join PostTag pt on p.Id = pt.PostId
+                        Join Tag t on t.Id = pt.TagId
+                        Where p.ID = @id";
+
+                    cmd.Parameters.AddWithValue("@id", id);
+                    var reader = cmd.ExecuteReader();
+                    var tags = new List<Tag>();
+                    while (reader.Read())
+                    {
+                        tags.Add(new Tag()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("TagId")),
+                            Name = reader.GetString(reader.GetOrdinal("TagName"))
+                        });
+                    }
+                    reader.Close();
+                    return tags;
+                }
+            }
+        }
+        public void DeleteTag(Tag tag)
         {
             using (SqlConnection connection= Connection)
             {

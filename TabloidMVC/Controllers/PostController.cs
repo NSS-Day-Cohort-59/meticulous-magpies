@@ -64,7 +64,15 @@ namespace TabloidMVC.Controllers
                     return NotFound();
                 }
             }
-            return View(post);
+            var selectedTags = _tagRepo.GetTagsOnPost(id);
+            PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
+            {
+                Post = post,
+                Tags = selectedTags
+            };
+
+
+            return View(postDetailsViewModel);
         }
 
         [Authorize(Roles = "Admin")]
