@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using Microsoft.Extensions.Hosting;
 
 namespace TabloidMVC.Controllers
 {
@@ -21,13 +22,15 @@ namespace TabloidMVC.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
         private readonly ITagRepository _tagRepo;
+        private readonly ICommentRepository _commentRepository;
 
-        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
+        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _tagRepo = tagRepo;
+            _commentRepository = commentRepository;
         }
 
         [Authorize]
@@ -65,10 +68,12 @@ namespace TabloidMVC.Controllers
                 }
             }
             var selectedTags = _tagRepo.GetTagsOnPost(id);
+            var postComments = _commentRepository.GetAllCommentsByPost(id);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
-                Tags = selectedTags
+                Tags = selectedTags,
+                Comments = postComments
             };
 
 
@@ -150,6 +155,80 @@ namespace TabloidMVC.Controllers
             }
         }
 
+        [Authorize]
+        public IActionResult CreateComment(int id)
+        {
+            var post = _postRepository.GetPublishedPostById(id);
+            Comment comment = new Comment()
+            {
+                PostId = post.Id,
+                UserProfileId = GetCurrentUserProfileId()
+            };
+            return View(comment);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult CreateComment(Comment comment, int id)
+        {
+            try
+            {
+                var post = _postRepository.GetPublishedPostById(id);
+                comment.CreateDateTime = DateAndTime.Now;
+                comment.PostId = post.Id;
+                comment.UserProfileId = GetCurrentUserProfileId();
+
+                _commentRepository.Add(comment);
+                
+
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch
+            {
+                return View(comment);
+            }
+        }
+
+        // GET: PostController/EditComment/5
+        [Authorize]
+        public IActionResult EditComment(int id)
+        {
+            int userId = GetCurrentUserProfileId();
+            var comment = _commentRepository.GetCommentById(id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            if (!User.IsInRole("Admin") && comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
+                return NotFound();
+            }
+
+            return View(comment);
+
+        }
+
+
+        // POST: PostController/EditComment/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditComment(Comment comment)
+        {
+            try
+            {
+                _commentRepository.UpdateComment(comment);
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch (Exception ex)
+            {
+                return View(comment);
+            }
+        }
+
+
         // GET: PostController/Edit/5
         [Authorize]
         public IActionResult Edit(int id)
@@ -229,6 +308,40 @@ namespace TabloidMVC.Controllers
             catch
             {
                 return View(post);
+            }
+
+        }
+
+        // GET: PostController/DeleteComment/5
+        [Authorize]
+        public ActionResult DeleteComment(int id)
+        {
+            Comment comment = _commentRepository.GetCommentById(id);
+
+            if (comment == null || (comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))))
+            {
+                return NotFound();
+            }
+
+            return View(comment);
+        }
+
+        // POST: PostController/DeleteComment/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteComment(Comment comment)
+        {
+            int detailId = comment.PostId;
+            try
+            {
+                _commentRepository.DeleteComment(comment.Id);
+
+                return RedirectToAction("Details", new { id = detailId });
+            }
+            catch
+            {
+                return View(comment);
             }
 
         }
