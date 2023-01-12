@@ -229,26 +229,14 @@ namespace TabloidMVC.Repositories
                     cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
                     cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
 
-                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation))
+                    //! If the user passed a valid imageUrl, USE IT
+                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation) && UrlUtil.IsValidImage(userProfile.Email))
                     {
-                        //! Checks if the ImageLocation provided by user is a valid URL
-                        Uri uriResult;
-                        bool isValidUrl = Uri.TryCreate(userProfile.ImageLocation, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-                        //! If the URL is NOT valid, exit
-                        if (isValidUrl) { 
-
-                            //! Now check if the URL contains a valid image extension
-                            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-
-                            bool isValidExtension = imageExtensions.Contains(Path.GetExtension(userProfile.ImageLocation).ToLowerInvariant());
-                            //! Unless user provides a valid URL, we default to Gravatar
-                            cmd.Parameters.AddWithValue("@imageLocation", isValidExtension ? userProfile.ImageLocation : Gravatar.GetImageUrl(userProfile.Email));
-                        }
+                        cmd.Parameters.AddWithValue("@imageLocation", userProfile.ImageLocation);
                     }
                     else
                     {
-                        cmd.Parameters.AddWithValue("@imageLocation", Gravatar.GetImageUrl(userProfile.Email));
+                        cmd.Parameters.AddWithValue("@imageLocation", GravatarUtil.GetImageUrl(userProfile.Email));
                     }
 
                     cmd.ExecuteNonQuery();
@@ -320,9 +308,18 @@ namespace TabloidMVC.Repositories
                     cmd.Parameters.AddWithValue("@displayName", userProfile.DisplayName);
                     cmd.Parameters.AddWithValue("@email", userProfile.Email);
                     cmd.Parameters.AddWithValue("@createDateTime", userProfile.CreateDateTime);
-                    cmd.Parameters.AddWithValue("@imageLocation", !string.IsNullOrWhiteSpace(userProfile.ImageLocation) ? userProfile.ImageLocation : DBNull.Value);
                     cmd.Parameters.AddWithValue("@userTypeId", userProfile.UserTypeId);
                     cmd.Parameters.AddWithValue("@id", userProfile.Id);
+
+                    //! If the user passed a valid imageUrl, USE IT
+                    if (!string.IsNullOrWhiteSpace(userProfile.ImageLocation) && UrlUtil.IsValidImage(userProfile.Email))
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", userProfile.ImageLocation);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@imageLocation", GravatarUtil.GetImageUrl(userProfile.Email));
+                    }
 
                     cmd.ExecuteNonQuery();
                 }
