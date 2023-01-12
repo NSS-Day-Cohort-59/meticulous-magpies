@@ -60,5 +60,36 @@
         <section class="row post__content">
             <p class="col-sm-12 mt-5">@Html.DisplayFor(model => model.Post.Content)</p>
         </section>
+        <div>
+            <ul style="list-style-type:none; font-size:20px;">
+                @foreach (var comment in Model.Comments)
+                {
+                    if (comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))) {
+                    <h2 class="text-secondary">@comment.Subject</h2>
+                    <p>@comment.Content</p>
+                    <p>@comment.UserProfile.DisplayName</p>
+                    <p>@comment.CreateDateTime</p>
+                    }
+
+                    else
+                    {
+                        <h2 class="text-secondary">@comment.Subject</h2>
+                        <p>@comment.Content</p>
+                        <p>@comment.UserProfile.DisplayName</p>
+                        <p>@comment.CreateDateTime</p>
+                        <a asp-action="EditComment" asp-route-id="@comment.Id" class="btn btn-outline-primary mx-1" title="Edit Comment">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                            <a asp-action="DeleteComment" asp-route-id="@comment.Id" class="btn btn-outline-primary mx-1" title="Delete Comment">
+                            <p>Delete Comment</p>
+                        </a>
+                    }
+                }
+                    
+            </ul>
+        </div>
+        <a asp-action="CreateComment" asp-route-id="@Model.Post.Id" class="btn btn-outline-primary mx-1" title="Write Comment">
+            <i class="fas fa-pencil-alt"></i>
+        </a>
     </div>
 </div>

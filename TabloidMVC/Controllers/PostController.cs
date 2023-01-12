@@ -8,9 +8,10 @@ using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
 using TabloidMVC.Repositories;
 using System.Collections.Generic;
-using System;
+
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using Microsoft.Extensions.Hosting;
 
 namespace TabloidMVC.Controllers
 {
@@ -21,19 +22,17 @@ namespace TabloidMVC.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
         private readonly ITagRepository _tagRepo;
-        private readonly ISubscriptionRepository _subscriptionRepository;
+        private readonly ICommentRepository _commentRepository;
+        private readonly ISubscriptionRepository _subscriptionRepo;
 
-        public PostController(IPostRepository postRepository,
-                              ITagRepository tagRepo, 
-                              ICategoryRepository categoryRepository, 
-                              IUserProfileRepository userRepository,
-                              ISubscriptionRepository subscriptionRepository)
+        public PostController(IPostRepository postRepository, ISubscriptionRepository subscriptionRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _tagRepo = tagRepo;
-            _subscriptionRepository= subscriptionRepository;
+            _commentRepository = commentRepository;
+            _subscriptionRepo = subscriptionRepository;
         }
 
         [Authorize]
@@ -72,12 +71,14 @@ namespace TabloidMVC.Controllers
             }
             int userId = GetCurrentUserProfileId();
             var selectedTags = _tagRepo.GetTagsOnPost(id);
-            var subcribed = _subscriptionRepository.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
+            var subcribed = _subscriptionRepo.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
+            var postComments = _commentRepository.GetAllCommentsByPost(id);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
                 Tags = selectedTags,
-                Subscription = subcribed
+                Subscription = subcribed,
+                Comments = postComments
             };
 
 
@@ -158,6 +159,80 @@ namespace TabloidMVC.Controllers
                 return View(vm);
             }
         }
+
+        [Authorize]
+        public IActionResult CreateComment(int id)
+        {
+            var post = _postRepository.GetPublishedPostById(id);
+            Comment comment = new Comment()
+            {
+                PostId = post.Id,
+                UserProfileId = GetCurrentUserProfileId()
+            };
+            return View(comment);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult CreateComment(Comment comment, int id)
+        {
+            try
+            {
+                var post = _postRepository.GetPublishedPostById(id);
+                comment.CreateDateTime = DateAndTime.Now;
+                comment.PostId = post.Id;
+                comment.UserProfileId = GetCurrentUserProfileId();
+
+                _commentRepository.Add(comment);
+
+
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch
+            {
+                return View(comment);
+            }
+        }
+
+        // GET: PostController/EditComment/5
+        [Authorize]
+        public IActionResult EditComment(int id)
+        {
+            int userId = GetCurrentUserProfileId();
+            var comment = _commentRepository.GetCommentById(id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            if (!User.IsInRole("Admin") && comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
+                return NotFound();
+            }
+
+            return View(comment);
+
+        }
+
+
+        // POST: PostController/EditComment/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditComment(Comment comment)
+        {
+            try
+            {
+                _commentRepository.UpdateComment(comment);
+                return RedirectToAction("Details", new { id = comment.PostId });
+            }
+            catch (Exception ex)
+            {
+                return View(comment);
+            }
+        }
+
 
         // GET: PostController/Edit/5
         [Authorize]
@@ -242,7 +317,7 @@ namespace TabloidMVC.Controllers
 
         }
         [Authorize]
-        
+
         public ActionResult Subscribe(int id)
         {
             int userId = GetCurrentUserProfileId();
@@ -252,9 +327,9 @@ namespace TabloidMVC.Controllers
 
                 SubscriberUserProfileId = userId,
                 ProviderUserProfileId = post.UserProfileId,
-               
+
             };
-           
+
             return View(subscribe);
         }
 
@@ -264,10 +339,10 @@ namespace TabloidMVC.Controllers
         {
             try
             {
-            subscription.BeginDateTime = DateTime.Now;
-            _subscriptionRepository.AddSubscription(subscription);
+                subscription.BeginDateTime = DateTime.Now;
+                _subscriptionRepo.AddSubscription(subscription);
 
-            return RedirectToAction("Details", new { id });
+                return RedirectToAction("Details", new { id });
 
             }
             catch
@@ -276,6 +351,40 @@ namespace TabloidMVC.Controllers
             }
         }
 
+
+        // GET: PostController/DeleteComment/5
+        [Authorize]
+        public ActionResult DeleteComment(int id)
+        {
+            Comment comment = _commentRepository.GetCommentById(id);
+
+            if (comment == null || (comment.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))))
+            {
+                return NotFound();
+            }
+
+            return View(comment);
+        }
+
+        // POST: PostController/DeleteComment/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteComment(Comment comment)
+        {
+            int detailId = comment.PostId;
+            try
+            {
+                _commentRepository.DeleteComment(comment.Id);
+
+                return RedirectToAction("Details", new { id = detailId });
+            }
+            catch
+            {
+                return View(comment);
+            }
+
+        }
 
         [Authorize]
         public IActionResult UsersPosts(IFormCollection thing)
