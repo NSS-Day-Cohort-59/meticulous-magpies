@@ -75,7 +75,7 @@ namespace TabloidMVC.Controllers
             return View(postDetailsViewModel);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateTags(int id)
         {
             var post = _postRepository.GetPublishedPostById(id);
@@ -103,6 +103,7 @@ namespace TabloidMVC.Controllers
             return View(tagViewModel);
         }
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public IActionResult CreateTags(PostTag postTag, int id)
         {
@@ -129,6 +130,7 @@ namespace TabloidMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public IActionResult Create(PostCreateViewModel vm)
         {
             try
@@ -149,7 +151,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: PostController/Edit/5
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public IActionResult Edit(int id)
         {
             int userId = GetCurrentUserProfileId();
@@ -164,6 +166,12 @@ namespace TabloidMVC.Controllers
                     return NotFound();
                 }
             }
+
+            if (!User.IsInRole("Admin") && post.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
+                return NotFound();
+            }
+
             var vm = new PostEditViewModel();
             vm.CategoryOptions = _categoryRepository.GetAll();
             vm.Post = post;
@@ -173,6 +181,7 @@ namespace TabloidMVC.Controllers
 
         // POST: PostController/Edit/5
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, PostEditViewModel vm)
         {
@@ -192,12 +201,12 @@ namespace TabloidMVC.Controllers
             return int.Parse(id);
         }
         // GET: PostController/Delete/5
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public ActionResult Delete(int id)
         {
             Post post = _postRepository.GetPublishedPostById(id);
 
-            if (post == null)
+            if (post == null || (post.UserProfileId != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) && !User.IsInRole("Admin")))
             {
                 return NotFound();
             }
@@ -207,6 +216,7 @@ namespace TabloidMVC.Controllers
 
         // POST: PostController/Delete/5
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, Post post)
         {

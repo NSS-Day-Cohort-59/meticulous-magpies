@@ -18,7 +18,7 @@ namespace TabloidMVC.Controllers
             _categoryRepository = categoryRepository;
         }
         // GET: CategoryController
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public ActionResult Index()
         {
             List<Category> categories = _categoryRepository.GetAll();
@@ -40,6 +40,7 @@ namespace TabloidMVC.Controllers
 
         // POST: CategoryController/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Category category)
         {
@@ -71,6 +72,7 @@ namespace TabloidMVC.Controllers
 
         // POST: CategoryController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, Category category)
         {
@@ -102,6 +104,7 @@ namespace TabloidMVC.Controllers
 
         // POST: CategoryController/Delete/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, Category category)
         {

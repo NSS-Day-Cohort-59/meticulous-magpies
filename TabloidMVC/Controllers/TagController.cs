@@ -28,14 +28,8 @@ namespace TabloidMVC.Controllers
             return View(tags);
         }
 
-        // GET: TagController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
         // GET: TagController/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
             var tag = new Tag();
@@ -44,6 +38,7 @@ namespace TabloidMVC.Controllers
 
         // POST: TagController/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Tag tag)
         {
@@ -74,12 +69,14 @@ namespace TabloidMVC.Controllers
 
         // POST: TagController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, Tag tag)
         {
             try
             {
                 _tagRepository.UpdateTag(tag);
+
                 return RedirectToAction("Index");
             }
             catch
@@ -89,7 +86,7 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: TagController/Delete/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
             Tag tag = _tagRepository.GetTagById(id);
@@ -103,6 +100,7 @@ namespace TabloidMVC.Controllers
 
         // POST: TagController/Delete/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(Tag tag)
         {
