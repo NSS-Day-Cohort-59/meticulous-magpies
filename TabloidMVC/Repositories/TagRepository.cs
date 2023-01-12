@@ -77,6 +77,31 @@ Order By t.Name
                 }
             }
         }
+        public List<int> GetTagsByPostId(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        Select *
+                        From Post p 
+                        Join PostTag pt on p.Id = pt.PostId
+                        Join Tag t on t.Id = pt.TagId";
+
+                    
+                    var reader = cmd.ExecuteReader();
+                    var tags = new List<int>();
+                    while (reader.Read())
+                    {
+                        tags.Add(reader.GetInt32(reader.GetOrdinal("TagId")));
+                    }
+                    reader.Close();
+                    return tags;
+                }
+            }
+        }
     public void DeleteTag(Tag tag)
         {
             using (SqlConnection connection= Connection)

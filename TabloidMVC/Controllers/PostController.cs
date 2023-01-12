@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
+using System;
 using System.Security.Claims;
 using TabloidMVC.Models;
 using TabloidMVC.Models.ViewModels;
@@ -19,12 +20,14 @@ namespace TabloidMVC.Controllers
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
+        private readonly ITagRepository _tagRepo;
 
-        public PostController(IPostRepository postRepository, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
+        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
+            _tagRepo = tagRepo;
         }
 
         [Authorize]
@@ -65,6 +68,51 @@ namespace TabloidMVC.Controllers
         }
 
         [Authorize]
+        public IActionResult CreateTags(int id)
+        {
+            var post = _postRepository.GetPublishedPostById(id);
+            if (post == null)
+            {
+                int userId = GetCurrentUserProfileId();
+                post = _postRepository.GetUserPostById(id, userId);
+
+            }
+            var selectedTags = _tagRepo.GetTagsByPostId(id);
+
+            PostTagViewModel tagViewModel = new PostTagViewModel()
+            {
+                Post = post,
+                Tags = _tagRepo.GetAllTags(),
+
+                PostTag = new PostTag()
+                {
+                    PostId = post.Id,
+                    TagIds = selectedTags
+                }
+            };
+
+
+            return View(tagViewModel);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateTags(PostTag postTag, int id)
+        {
+            try
+            {
+                _postRepository.DeletePostTagsonPost(id);
+                postTag.PostId = id;
+                _postRepository.AddPostTag(postTag);
+                return RedirectToAction("Details", new { id = postTag.PostId });
+            }
+            catch (Exception ex)
+            {
+
+                return View(postTag);
+            }
+        }
+
+        [Authorize]
         public IActionResult Create()
         {
             var vm = new PostCreateViewModel();
@@ -84,7 +132,7 @@ namespace TabloidMVC.Controllers
                 _postRepository.Add(vm.Post);
 
                 return RedirectToAction("Details", new { id = vm.Post.Id });
-            } 
+            }
             catch
             {
                 vm.CategoryOptions = _categoryRepository.GetAll();
@@ -94,14 +142,14 @@ namespace TabloidMVC.Controllers
 
         // GET: PostController/Edit/5
         [Authorize(Roles = "Admin")]
-        public IActionResult Edit(int id) 
+        public IActionResult Edit(int id)
         {
             int userId = GetCurrentUserProfileId();
             var post = _postRepository.GetPublishedPostById(id);
 
             if (post == null)
             {
-                
+
                 post = _postRepository.GetUserPostById(id, userId);
                 if (post == null)
                 {
@@ -125,7 +173,7 @@ namespace TabloidMVC.Controllers
                 _postRepository.UpdatePost(vm.Post);
                 return RedirectToAction("Index");
             }
-            catch
+            catch (Exception ex)
             {
                 return View(vm.Post);
             }
