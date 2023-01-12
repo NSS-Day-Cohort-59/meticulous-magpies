@@ -8,7 +8,7 @@ namespace TabloidMVC.Repositories
         List<Tag> GetAllTags();
         Tag GetTagById(int id);
         List<int> GetTagsByPostId(int id);
-
+        List<Tag> GetTagsOnPost(int id);
 
         void AddTag(Tag tag);
         void DeleteTag(Tag tag);
