@@ -6,7 +6,7 @@ namespace TabloidMVC.Models.ViewModels
     {
         public List<UserType> UserTypes { get; set; }
         public UserProfile UserProfile { get; set; }
-        public byte DemotionRequests { get; set; }
+        public int DemotionRequests { get; set; }
         public int ExistingDemotionRequesterId { get; set; }
     }
 }

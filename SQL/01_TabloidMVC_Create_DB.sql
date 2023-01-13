@@ -18,7 +18,8 @@ DROP TABLE IF EXISTS [Category];
 DROP TABLE IF EXISTS [Subscription];
 DROP TABLE IF EXISTS [UserProfile];
 DROP TABLE IF EXISTS [UserType];
-DROP TABLE IF EXISTS [AdminRequest]
+DROP TABLE IF EXISTS [AdminRequest];
+DROP TABLE IF EXISTS [AdminRequestType];
 GO
 
 
@@ -39,6 +40,11 @@ CREATE TABLE [UserProfile] (
   [IsActive] bit NOT NULL DEFAULT(1)
 
   CONSTRAINT [FK_User_UserType] FOREIGN KEY ([UserTypeId]) REFERENCES [UserType] ([Id])
+)
+
+CREATE TABLE dbo.AdminRequestType (
+	Id int PRIMARY KEY IDENTITY NOT NULL,
+	[Name] varchar(30) NOT NULL
 )
 
 CREATE TABLE [AdminRequest] (

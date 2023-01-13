@@ -1,4 +1,6 @@
-﻿@model TabloidMVC.Models.UserProfile
+﻿@using System.Security.Claims
+
+@model TabloidMVC.Models.ViewModels.DeactivateUserProfileViewModel
 
 @{
     ViewData["Title"] = "Deactivate";
@@ -6,60 +8,72 @@
 
 <h1>Deactivate</h1>
 
-<h3>Are you sure you want to deactivate @Model.DisplayName?</h3>
+<h3>Are you sure you want to deactivate @Model.UserProfile.DisplayName?</h3>
 <div>
     <h4>UserProfile</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FullName)
+            @Html.DisplayNameFor(model => model.UserProfile.FullName)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FullName)
+            @Html.DisplayFor(model => model.UserProfile.FullName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DisplayName)
+            @Html.DisplayNameFor(model => model.UserProfile.DisplayName)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DisplayName)
+            @Html.DisplayFor(model => model.UserProfile.DisplayName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
+            @Html.DisplayNameFor(model => model.UserProfile.Email)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
+            @Html.DisplayFor(model => model.UserProfile.Email)
         </dd>
         <dt class = "col-sm-2">
             Creation Date
         </dt>
         <dd class = "col-sm-10">
-            @Model.CreateDateTime.ToString("MM/dd/yyyy")
+            @Model.UserProfile.CreateDateTime.ToString("MM/dd/yyyy")
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserType.Name)
+            @Html.DisplayNameFor(model => model.UserProfile.UserType.Name)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserType.Name)
+            @Html.DisplayFor(model => model.UserProfile.UserType.Name)
         </dd> 
     </dl>
-    <img src="@Model.ImageLocation" alt="avatar" />
+    <img src="@Model.UserProfile.ImageLocation" alt="avatar" />
     
     
-    <form asp-action="Deactivate" method="post">
+    <form asp-action=@String.Format($"{(Model.ExistingDeactivationRequesterId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) ? "{0}" : "{1}")}", "CancelDeactivate", "Deactivate") method="post">
         <div class="form-group">
-            @Html.HiddenFor(m => m.FirstName)
-            @Html.HiddenFor(m => m.LastName)
-            @Html.HiddenFor(m => m.DisplayName)
-            @Html.HiddenFor(m => m.Email)
-            @Html.HiddenFor(m => m.CreateDateTime)
-            @Html.HiddenFor(m => m.ImageLocation)
-            @Html.HiddenFor(m => m.UserType.Id)
-            @Html.HiddenFor(m => m.UserType.Name)
-            @Html.HiddenFor(m => m.UserTypeId)
+            @Html.HiddenFor(m => m.UserProfile.Id)
+            @Html.HiddenFor(m => m.UserProfile.FirstName)
+            @Html.HiddenFor(m => m.UserProfile.LastName)
+            @Html.HiddenFor(m => m.UserProfile.DisplayName)
+            @Html.HiddenFor(m => m.UserProfile.Email)
+            @Html.HiddenFor(m => m.UserProfile.CreateDateTime)
+            @Html.HiddenFor(m => m.UserProfile.ImageLocation)
+            @Html.HiddenFor(m => m.UserProfile.UserType.Id)
+            @Html.HiddenFor(m => m.UserProfile.UserType.Name)
+            @Html.HiddenFor(m => m.UserProfile.UserTypeId)
+            @Html.HiddenFor(m => m.DeactivationRequests)
+            @Html.HiddenFor(m => m.ExistingDeactivationRequesterId)
         </div>
         <div class="form-group">
-            <input type="submit" value="Deactivate" class="btn btn-danger" /> | <a asp-action="Index">Back to List</a>
+            @if (Model.ExistingDeactivationRequesterId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
+                <input type="submit" value="Cancel Request" class="btn btn-danger" />
+            }
+            else
+            {
+                <input type="submit" value="Deactivate" class="btn btn-danger" />
+            }
+            |
+            <a asp-action="Index">Back to List</a>
         </div>
-        <span asp-validation-for="UserTypeId" class="text-danger"></span>
+        <span asp-validation-for="UserProfile.UserTypeId" class="text-danger"></span>
     </form>
 </div>
