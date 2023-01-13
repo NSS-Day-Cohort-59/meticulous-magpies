@@ -209,7 +209,7 @@ namespace TabloidMVC.Controllers
         {
             int amountOfAdmins = _userProfileRepository.GetAdminCount();
 
-            if (amountOfAdmins == 1)
+            if (amountOfAdmins == 1 && vm.UserProfile.UserTypeId == (int)UserProfileTypeEnum.Admin)
             {
                 ModelState.AddModelError("UserProfile.UserTypeId", "Make someone else an admin before the User Profile can be changed.");
                 return View(vm);
@@ -240,6 +240,10 @@ namespace TabloidMVC.Controllers
 
                         _userProfileRepository.RetireRequest(id, (int)AdminRequestTypeEnum.Deactivate);
                     }
+                }
+                else
+                {
+                    _userProfileRepository.Deactivate(vm.UserProfile);
                 }
                 return RedirectToAction(nameof(Index));
             }
