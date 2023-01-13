@@ -23,14 +23,16 @@ namespace TabloidMVC.Controllers
         private readonly IUserProfileRepository _userRepository;
         private readonly ITagRepository _tagRepository;
         private readonly ICommentRepository _commentRepository;
+        private readonly ISubscriptionRepository _subscriptionRepo;
 
-        public PostController(IPostRepository postRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository, ICommentRepository commentRepository)
+        public PostController(IPostRepository postRepository, ISubscriptionRepository subscriptionRepository, ITagRepository tagRepo, ICategoryRepository categoryRepository, IUserProfileRepository userRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _tagRepository = tagRepo;
             _commentRepository = commentRepository;
+            _subscriptionRepo = subscriptionRepository;
         }
 
         [Authorize]
@@ -66,19 +68,23 @@ namespace TabloidMVC.Controllers
             var post = _postRepository.GetPublishedPostById(id);
             if (post == null)
             {
-                int userId = GetCurrentUserProfileId();
-                post = _postRepository.GetUserPostById(id, userId);
+                int UserId = GetCurrentUserProfileId();
+                post = _postRepository.GetUserPostById(id, UserId);
                 if (post == null)
                 {
                     return NotFound();
                 }
             }
+            int userId = GetCurrentUserProfileId();
             var selectedTags = _tagRepository.GetTagsOnPost(id);
+            var selectedTags = _tagRepository.GetTagsOnPost(id);
+            var subcribed = _subscriptionRepo.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
             var postComments = _commentRepository.GetAllCommentsByPost(id);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
                 Tags = selectedTags,
+                Subscription = subcribed,
                 Comments = postComments
             };
 
@@ -317,6 +323,41 @@ namespace TabloidMVC.Controllers
             }
 
         }
+        [Authorize]
+
+        public ActionResult Subscribe(int id)
+        {
+            int userId = GetCurrentUserProfileId();
+            var post = _postRepository.GetPublishedPostById(id);
+            Subscription subscribe = new Subscription()
+            {
+
+                SubscriberUserProfileId = userId,
+                ProviderUserProfileId = post.UserProfileId,
+
+            };
+
+            return View(subscribe);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Subscribe(Subscription subscription, int id)
+        {
+            try
+            {
+                subscription.BeginDateTime = DateTime.Now;
+                _subscriptionRepo.AddSubscription(subscription);
+
+                return RedirectToAction("Details", new { id });
+
+            }
+            catch
+            {
+                return View(subscription);
+            }
+        }
+
 
         // GET: PostController/DeleteComment/5
         [Authorize]
@@ -365,11 +406,11 @@ namespace TabloidMVC.Controllers
             var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
             return View(posts);
         }
+    }
 
         public IActionResult PostsByTag(IFormCollection formData)
         {
             var posts = _postRepository.PostsByTag(int.Parse(formData["Tags"]));
             return View(posts);
         }
-    }
 }
