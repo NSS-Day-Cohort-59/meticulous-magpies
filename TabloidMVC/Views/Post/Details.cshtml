@@ -35,6 +35,17 @@
                 <a asp-action="CreateTags" asp-route-id="@Model.Post.Id" class="btn btn-outline-primary mx-1" title="Tags">
                     <i class="fas fa-pencil-alt"></i>
                 </a>
+              
+                @if (Model.Subscription == null )
+                {
+                <a asp-action="Subscribe" asp-route-id="@Model.Post.Id" class="btn btn-outline-primary mx-1" title="Subscribe">
+                    <i class="fas fa-bell-alt"></i>
+                </a>
+
+                }
+
+                    
+                
             </div>
         </section>
         <hr />
