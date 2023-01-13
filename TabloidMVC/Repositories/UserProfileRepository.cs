@@ -335,21 +335,20 @@ namespace TabloidMVC.Repositories
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        INSERT INTO dbo.[AdminRequest] (RequesterUserProfileId, TargetUserProfileId, Demote, Deactivate, CreateDateTime)
-                        VALUES (@requesterId, @targetId, @demote, @deactivate, @createDateTime)
+                        INSERT INTO dbo.[AdminRequest] (RequesterUserProfileId, TargetUserProfileId, AdminRequestTypeId,  CreateDateTime)
+                        VALUES (@requesterId, @targetId, @requestTypeId, @createDateTime)
                     ";
 
                     cmd.Parameters.AddWithValue("@requesterId", request.RequesterUserProfileId);
                     cmd.Parameters.AddWithValue("@targetId", request.TargetUserProfileId);
-                    cmd.Parameters.AddWithValue("@demote", request.Demote ? 1 : 0);
-                    cmd.Parameters.AddWithValue("@deactivate", request.Deactivate ? 1 : 0);
+                    cmd.Parameters.AddWithValue("@requestTypeId", request.RequestTypeId);
                     cmd.Parameters.AddWithValue("@createDateTime", request.CreateDateTime ?? DateTime.Now);
 
                     cmd.ExecuteNonQuery();
                 }
             }
         }
-        public byte RequestsByUserId(int userId, byte requestType)
+        public int RequestsByUserId(int userId, int requestTypeId)
         {
             using (SqlConnection conn = Connection)
             {
@@ -357,23 +356,24 @@ namespace TabloidMVC.Repositories
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @$"
-                        SELECT CAST(COUNT(Id) AS tinyint) 
+                    cmd.CommandText = @"
+                        SELECT COUNT(Id)
                         FROM dbo.AdminRequest
                         WHERE TargetUserProfileId = @userId 
-                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND AdminRequestTypeId = @requestTypeId
                             AND IsCancelled = 0
                             AND CloseDateTime IS NULL
                     ";
 
                     cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@requestTypeId", requestTypeId);
 
-                    byte requests = (byte)cmd.ExecuteScalar();
+                    int requests = (int)cmd.ExecuteScalar();
                     return requests;
                 }
             }
         }
-        public void RetireRequest(int userId, byte requestType)
+        public void RetireRequest(int userId, int requestTypeId)
         {
             using (SqlConnection conn = Connection)
             {
@@ -381,15 +381,16 @@ namespace TabloidMVC.Repositories
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @$"
+                    cmd.CommandText = @"
                         UPDATE dbo.AdminRequest
                         SET CloseDateTime = @closeDateTime
                         WHERE TargetUserProfileId = @userId 
-                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND AdminRequestTypeId = @requestTypeId
                             AND IsCancelled = 0
                             AND CloseDateTime IS NULL
                     ";
 
+                    cmd.Parameters.AddWithValue("@requestTypeId", requestTypeId);
                     cmd.Parameters.AddWithValue("@userId", userId);
                     cmd.Parameters.AddWithValue("@closeDateTime", DateTime.Now);
 
@@ -397,7 +398,7 @@ namespace TabloidMVC.Repositories
                 }
             }
         }
-        public int GetRequesterId(int targetId, byte requestType)
+        public int GetRequesterId(int targetId, int requestTypeId)
         {
             using (SqlConnection conn = Connection)
             {
@@ -405,23 +406,24 @@ namespace TabloidMVC.Repositories
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @$"
+                    cmd.CommandText = @"
                         SELECT RequesterUserProfileId
                         FROM dbo.AdminRequest
-                        WHERE {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                        WHERE AdminRequestTypeId = @requestTypeId
                             AND TargetUserProfileId = @targetId
                             AND IsCancelled = 0
                             AND CloseDateTime IS NULL
                     ";
 
                     cmd.Parameters.AddWithValue("@targetId", targetId);
+                    cmd.Parameters.AddWithValue("@requestTypeId", requestTypeId);
 
                     int requesterId = (int)cmd.ExecuteScalar();
                     return requesterId;
                 }
             }
         }
-        public void CancelRequest(int requesterId, int userId, byte requestType) 
+        public void CancelRequest(int requesterId, int userId, int requestTypeId) 
         {
             using (SqlConnection conn = Connection)
             {
@@ -429,20 +431,21 @@ namespace TabloidMVC.Repositories
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @$"
-                        UPDATE dbo.[AdminRequest]
-                        SET [CloseDateTime] = @closeDateTime,
-                            [IsCancelled] = 1
-                        WHERE [CloseDateTime] IS NULL
-                            AND [RequesterUserProfileId] = @requesterId
-                            AND [TargetUserProfileId] = @userId
+                    cmd.CommandText = @"
+                        UPDATE dbo.AdminRequest
+                        SET CloseDateTime = @closeDateTime,
+                            IsCancelled = 1
+                        WHERE CloseDateTime IS NULL
+                            AND RequesterUserProfileId = @requesterId
+                            AND TargetUserProfileId = @userId
                             AND IsCancelled = 0
-                            AND {(requestType == 0 ? "Demote" : "Deactivate")} = 1
+                            AND AdminRequestTypeId = @requestTypeId
                     ";
 
                     cmd.Parameters.AddWithValue("@closeDateTime", DateTime.Now);
                     cmd.Parameters.AddWithValue("@requesterId", requesterId);
                     cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@requestTypeId", requestTypeId);
 
                     cmd.ExecuteNonQuery();
                 }
