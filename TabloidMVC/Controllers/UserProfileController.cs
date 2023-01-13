@@ -202,6 +202,7 @@ namespace TabloidMVC.Controllers
             return View(vm);
         }
 
+        //SET 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Deactivate(int id, DeactivateUserProfileViewModel vm)
@@ -210,12 +211,12 @@ namespace TabloidMVC.Controllers
 
             if (amountOfAdmins == 1)
             {
-                ModelState.AddModelError("UserTypeId", "Make someone else an admin before the User Profile can be changed.");
+                ModelState.AddModelError("UserProfile.UserTypeId", "Make someone else an admin before the User Profile can be changed.");
                 return View(vm);
             }
             else if (int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)) == vm.UserProfile.Id)
             {
-                ModelState.AddModelError("UserTypeId", "You cannot deactivate your own account.");
+                ModelState.AddModelError("UserProfile.UserTypeId", "You cannot deactivate your own account.");
                 return View(vm);
             }
 

@@ -68,7 +68,18 @@
     </dl>
     
     <form asp-action="Delete" method="post">
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="form-group"> 
+            @Html.HiddenFor(m => m.Id)
+            @Html.HiddenFor(m => m.Title)
+            @Html.HiddenFor(m => m.Content)
+            @Html.HiddenFor(m => m.ImageLocation)
+            @Html.HiddenFor(m => m.CreateDateTime)
+            @Html.HiddenFor(m => m.PublishDateTime)
+            @Html.HiddenFor(m => m.IsApproved)
+            @Html.HiddenFor(m => m.CategoryId)
+            @Html.HiddenFor(m => m.UserProfileId)
+            <input type="submit" value="Delete" class="btn btn-danger" /> |
+            <a asp-action="Index">Back to List</a>
+        </div>
     </form>
 </div>

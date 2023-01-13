@@ -66,20 +66,21 @@ namespace TabloidMVC.Controllers
         public IActionResult Details(int id)
         {
             var post = _postRepository.GetPublishedPostById(id);
+            int userId = GetCurrentUserProfileId();
+            
             if (post == null)
             {
-                int UserId = GetCurrentUserProfileId();
-                post = _postRepository.GetUserPostById(id, UserId);
+                post = _postRepository.GetUserPostById(id, userId);
                 if (post == null)
                 {
                     return NotFound();
                 }
             }
-            int userId = GetCurrentUserProfileId();
-            var selectedTags = _tagRepository.GetTagsOnPost(id);
+;
             var selectedTags = _tagRepository.GetTagsOnPost(id);
             var subcribed = _subscriptionRepo.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
             var postComments = _commentRepository.GetAllCommentsByPost(id);
+
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
             {
                 Post = post,
@@ -131,7 +132,7 @@ namespace TabloidMVC.Controllers
                 _postRepository.AddPostTag(postTag);
                 return RedirectToAction("Details", new { id = postTag.PostId });
             }
-            catch (Exception ex)
+            catch
             {
 
                 return View(postTag);
@@ -234,7 +235,7 @@ namespace TabloidMVC.Controllers
                 _commentRepository.UpdateComment(comment);
                 return RedirectToAction("Details", new { id = comment.PostId });
             }
-            catch (Exception ex)
+            catch
             {
                 return View(comment);
             }
@@ -250,7 +251,6 @@ namespace TabloidMVC.Controllers
 
             if (post == null)
             {
-
                 post = _postRepository.GetUserPostById(id, userId);
                 if (post == null)
                 {
@@ -281,7 +281,7 @@ namespace TabloidMVC.Controllers
                 _postRepository.UpdatePost(vm.Post);
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch
             {
                 return View(vm.Post);
             }
@@ -313,6 +313,7 @@ namespace TabloidMVC.Controllers
         {
             try
             {
+                _tagRepository.DeletePostTagsByPost(id);
                 _postRepository.Delete(post);
 
                 return RedirectToAction(nameof(Index));
@@ -406,11 +407,11 @@ namespace TabloidMVC.Controllers
             var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
             return View(posts);
         }
-    }
-
-        public IActionResult PostsByTag(IFormCollection formData)
+        public ActionResult PostsByTag(IFormCollection formData)
         {
             var posts = _postRepository.PostsByTag(int.Parse(formData["Tags"]));
             return View(posts);
         }
+    }
+
 }

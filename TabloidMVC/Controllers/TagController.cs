@@ -106,7 +106,9 @@ namespace TabloidMVC.Controllers
         {
             try
             {
+                _tagRepository.DeletePostTagsByTag(tag.Id);
                 _tagRepository.DeleteTag(tag);
+
                 return RedirectToAction(nameof(Index));
             }
             catch

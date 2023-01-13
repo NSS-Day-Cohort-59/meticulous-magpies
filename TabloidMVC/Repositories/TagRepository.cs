@@ -9,7 +9,7 @@ namespace TabloidMVC.Repositories
     public class TagRepository : BaseRepository, ITagRepository
     {
         public TagRepository(IConfiguration configuration) : base(configuration) { }
-      
+
 
 
 
@@ -21,10 +21,10 @@ namespace TabloidMVC.Repositories
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-Select t.Id, t.Name
-From Tag t
-Order By t.Name
-";
+                        Select t.Id, t.Name
+                        From Tag t
+                        Order By t.Name
+                    ";
                     var reader = cmd.ExecuteReader();
                     var tags = new List<Tag>();
                     while (reader.Read())
@@ -32,7 +32,7 @@ Order By t.Name
                         tags.Add(new Tag()
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                           Name = reader.GetString(reader.GetOrdinal("Name"))
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
                         });
                     }
                     reader.Close();
@@ -40,7 +40,7 @@ Order By t.Name
                 }
             }
         }
-    public void AddTag(Tag tag)
+        public void AddTag(Tag tag)
         {
             using (var conn = Connection)
             {
@@ -48,9 +48,9 @@ Order By t.Name
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                            Insert Into Tag (Name)
-                            Output Inserted.Id
-                            Values (@name)";
+                        Insert Into Tag (Name)
+                        Output Inserted.Id
+                        Values (@name)";
 
                     cmd.Parameters.AddWithValue("@name", tag.Name);
 
@@ -58,9 +58,9 @@ Order By t.Name
                 }
             }
         }
-    public Tag GetTagById(int id)
+        public Tag GetTagById(int id)
         {
-            using (SqlConnection connection= Connection)
+            using (SqlConnection connection = Connection)
             {
                 connection.Open();
 
@@ -133,9 +133,47 @@ Order By t.Name
                 }
             }
         }
+        public void DeletePostTagsByPost(int postId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        DELETE PostTag
+                        WHERE PostId = @postId
+                    ";
+
+                    cmd.Parameters.AddWithValue("@postId", postId);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void DeletePostTagsByTag(int tagId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        DELETE PostTag
+                        WHERE TagId = @tagId
+                    ";
+
+                    cmd.Parameters.AddWithValue("tagId", tagId);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
         public void DeleteTag(Tag tag)
         {
-            using (SqlConnection connection= Connection)
+            using (SqlConnection connection = Connection)
             {
                 connection.Open();
 
@@ -151,9 +189,9 @@ Order By t.Name
                 }
             }
         }
-    public void UpdateTag(Tag tag)
+        public void UpdateTag(Tag tag)
         {
-            using (SqlConnection connection= Connection)
+            using (SqlConnection connection = Connection)
             {
                 connection.Open();
 

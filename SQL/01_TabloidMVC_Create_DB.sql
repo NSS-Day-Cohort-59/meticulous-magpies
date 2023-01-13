@@ -53,8 +53,7 @@ CREATE TABLE [AdminRequest] (
 	[CreateDateTime] DateTime NOT NULL,
 	[CloseDateTime] DateTime NULL,
 	[TargetUserProfileId] int NOT NULL,
-	[Demote] bit NOT NULL DEFAULT(0),
-	[Deactivate] bit NOT NULL DEFAULT(0),
+	[AdminRequestTypeId] int NOT NULL,
 	[IsCancelled] bit NOT NULL DEFAULT(0),
 
 	CONSTRAINT [FK_AdminRequest_UserProfile_Requester] FOREIGN KEY ([RequesterUserProfileId]) REFERENCES [UserProfile] ([Id]),
