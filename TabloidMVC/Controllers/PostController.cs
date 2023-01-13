@@ -21,7 +21,7 @@ namespace TabloidMVC.Controllers
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserProfileRepository _userRepository;
-        private readonly ITagRepository _tagRepo;
+        private readonly ITagRepository _tagRepository;
         private readonly ICommentRepository _commentRepository;
         private readonly ISubscriptionRepository _subscriptionRepo;
 
@@ -30,7 +30,7 @@ namespace TabloidMVC.Controllers
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
-            _tagRepo = tagRepo;
+            _tagRepository = tagRepo;
             _commentRepository = commentRepository;
             _subscriptionRepo = subscriptionRepository;
         }
@@ -41,11 +41,17 @@ namespace TabloidMVC.Controllers
             var posts = _postRepository.GetAllPublishedPosts();
             var users = _userRepository.GetAll();
             var categories = _categoryRepository.GetAll();
-            var vu = new PostByUserViewModel();
-            vu.Post = posts;
-            vu.UserProfiles = users;
-            vu.Categories = categories;
-            return View(vu);
+            var tags = _tagRepository.GetAllTags();
+
+            PostByUserViewModel vm = new()
+            {
+                Tags = tags,
+                Post = posts,
+                UserProfiles = users,
+                Categories = categories
+            };
+
+            return View(vm);
         }
 
         [Authorize]
@@ -70,7 +76,8 @@ namespace TabloidMVC.Controllers
                 }
             }
             int userId = GetCurrentUserProfileId();
-            var selectedTags = _tagRepo.GetTagsOnPost(id);
+            var selectedTags = _tagRepository.GetTagsOnPost(id);
+            var selectedTags = _tagRepository.GetTagsOnPost(id);
             var subcribed = _subscriptionRepo.GetSubscriptionByUserIdAndProviderId(userId, post.UserProfileId);
             var postComments = _commentRepository.GetAllCommentsByPost(id);
             PostDetailsViewModel postDetailsViewModel = new PostDetailsViewModel()
@@ -95,12 +102,12 @@ namespace TabloidMVC.Controllers
                 post = _postRepository.GetUserPostById(id, userId);
 
             }
-            var selectedTags = _tagRepo.GetTagsByPostId(id);
+            var selectedTags = _tagRepository.GetTagsByPostId(id);
 
             PostTagViewModel tagViewModel = new PostTagViewModel()
             {
                 Post = post,
-                Tags = _tagRepo.GetAllTags(),
+                Tags = _tagRepository.GetAllTags(),
 
                 PostTag = new PostTag()
                 {
@@ -387,23 +394,23 @@ namespace TabloidMVC.Controllers
         }
 
         [Authorize]
-        public IActionResult UsersPosts(IFormCollection thing)
+        public ActionResult UsersPosts(IFormCollection thing)
         {
             var posts = _postRepository.GetAllPostsByUser(int.Parse(thing["UserProfiles"]));
             return View(posts);
         }
 
         [Authorize]
-        public IActionResult CategoryPosts(IFormCollection thing)
+        public ActionResult CategoryPosts(IFormCollection thing)
         {
             var posts = _postRepository.PostsByCategory(int.Parse(thing["Categories"]));
             return View(posts);
         }
-
-
-
-
-
-
     }
+
+        public IActionResult PostsByTag(IFormCollection formData)
+        {
+            var posts = _postRepository.PostsByTag(int.Parse(formData["Tags"]));
+            return View(posts);
+        }
 }

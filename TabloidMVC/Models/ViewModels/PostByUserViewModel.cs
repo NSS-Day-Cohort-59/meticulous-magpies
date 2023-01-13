@@ -8,5 +8,6 @@ namespace TabloidMVC.Models.ViewModels
         public List<UserProfile> UserProfiles { get; set; }
 
         public List<Category> Categories { get; set; }
+        public List<Tag> Tags { get; set; }
     }
 }
