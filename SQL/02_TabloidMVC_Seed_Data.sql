@@ -34,7 +34,7 @@ VALUES (
     'https://gizmodiva.com/wp-content/uploads/2017/10/SCOTT-A-WOODWARD_1SW1943-1170x689.jpg',SYSDATETIME(), SYSDATETIME(), 1, 1, 1);
 SET IDENTITY_INSERT [Post] OFF
 
-SET IDENTITY_INSERT AdminRequestType OFF
+SET IDENTITY_INSERT AdminRequestType ON
 INSERT INTO dbo.AdminRequestType (Id, [Name])
 VALUES (1, 'Demote'), (2, 'Deactivate')
 SET IDENTITY_INSERT AdminRequestType OFF
